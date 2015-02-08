@@ -1,0 +1,14 @@
+#include <stdlib.h>
+#include <stdio.h> /* for printf */
+
+void tst_strtol (void) {
+  long l;
+  char s [] = "-123456789 stuff";
+  char *p;
+
+  l = strtol (s, &p, 10);
+  printf ("strtol(%s) = %ld\n", s, l);
+
+/* p points to " stuff" */
+}
+

@@ -1,0 +1,56 @@
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Java2c <init>
+INFO: Loading AtJniIsp.dll ...
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: C:\Program Files\Java\jre1.5.0_03\bin
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: .
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: C:\WINDOWS\system32
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: C:\WINDOWS
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: C:\WINDOWS\system32
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: C:\WINDOWS
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: C:\WINDOWS\system32\WBEM
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: C:\Program Files\Flash Magic
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: C:\altera\quartus51sp1\eda\sim_lib\excalibur\swift\lib\pcnt.lib
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: C:\altera\quartus51sp1\bin
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: C:\altera\quartus51sp1\bin
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: C:\PROGRA~1\Aldec\ACTIVE~1.1\BIN
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: c:\Xilinx\bin\nt
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: C:\MATLAB7\bin\win32
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: C:\Program Files\Common Files\Adobe\AGL
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: C:\Program Files\Microsoft SQL Server\80\Tools\Binn\
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: "C:\Program Files\Zone Labs\ZoneAlarm\MailFrontier"
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Flip binFolderPathExists
+FINE: C:\Program Files\Atmel\FLIP 3.0.0\bin
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Device buildDevicesList
+FINE: Part Description Files folder: C:\Program Files\Atmel\FLIP 3.0.0\bin\PartDescriptionFiles
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Device buildDevicesList
+INFO: Device 0: AT89C5131
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Device buildDevicesList
+INFO: Device 1: AT89C51RD2
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Device buildDevicesList
+INFO: Device 2: AT89C51RE2
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Device buildDevicesList
+INFO: Device 3: AT89C51SND1
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Device buildDevicesList
+INFO: Device 4: AT90USB1287
+30 เม.ย. 2549 19:02:41 com.atmel.flip.Device buildDevicesList
+INFO: Device 5: T89C51CC01
+30 เม.ย. 2549 19:02:41 com.atmel.flipGui.Gui <init>
+INFO: FlipGui constructor
+30 เม.ย. 2549 19:02:43 com.atmel.flip.Flip applicationExit
+INFO: Exit application

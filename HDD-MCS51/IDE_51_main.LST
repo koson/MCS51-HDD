@@ -1,0 +1,441 @@
+C51 COMPILER V8.02   IDE_51_MAIN                                                           04/18/2006 00:40:36 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE IDE_51_MAIN
+OBJECT MODULE PLACED IN IDE_51_main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE IDE_51_main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include <REG51AC2.h>
+   2          #include <stdio.h>
+   3          
+   4          #define N 'N'
+   5          #define E 'E'
+   6          #define O 'O'
+   7          #define n 'N'
+   8          #define e 'E'
+   9          #define o 'O'
+  10          
+  11          #define ATA_ST_ERR                      0x01
+  12          #define ATA_ST_INDEX            0x02 >> 1 
+  13          #define ATA_ST_CORR                     0x04 >> 2
+  14          #define ATA_ST_DRQ                      0x08 >> 3
+  15          #define ATA_ST_DSC                      0x10 >> 4
+  16          #define ATA_ST_DWF                      0x20 >> 5
+  17          #define ATA_ST_RDY                      0x40 >> 6
+  18          #define ATA_ST_BUSY                     0x80 >> 7
+  19          
+  20          #define ATA_ERR_AMNF            0x01
+  21          #define ATA_ERR_TK0NF           0x02 >> 1
+  22          #define ATA_ERR_ABRT            0x04 >> 2
+  23          #define ATA_ERR_MCR                     0x08 >> 3
+  24          #define ATA_ERR_IDNF            0x10 >> 4
+  25          #define ATA_ERR_MC                      0x20 >> 5
+  26          #define ATA_ERR_UNC                     0x40 >> 6
+  27          #define ATA_ERR_BBK                     0x80 >> 7
+  28          
+  29          #define DATA_PORT                       0xF0
+  30          #define ERROR_REG                       0xF1
+  31          #define SECTOR_COUNT            0xF2
+  32          #define SECTOR_NUMBER           0xF3
+  33          #define CYLINDER_LOW            0xF4
+  34          #define CYLINDER_HI                     0xF5
+  35          #define DRIVE_HEAD                      0xF6
+  36          #define STATUS_REG                      0xF7
+  37          #define COMMAND_REG                     0xF7
+  38          
+  39          unsigned int  DataSpeed;
+  40          unsigned char DataBits;
+  41          unsigned char Parity;
+  42          unsigned char StopBits;
+  43          unsigned char SerialSet;
+  44          
+  45          
+  46          void Init_serial();
+  47          unsigned int Bytes_write; // len data_ethernet
+  48          unsigned char Aux_Data[16];           //' TCP AUX DATA = INTERGER < PACKET - 55 BYTE AND CHECKRAM
+  49          
+  50          unsigned char ReadDiskStatus();
+  51          unsigned char ReadDiskErrorReg();
+  52          void ReportDiskStatus();
+  53          void ReportErrorStatus();
+  54          void ReportDiskIdentify();
+  55          void ReportAllregister();
+C51 COMPILER V8.02   IDE_51_MAIN                                                           04/18/2006 00:40:36 PAGE 2   
+
+  56          void checkpowermode(void);
+  57          
+  58          
+  59          
+  60          
+  61          sbit RESETn = P1^7;
+  62          sbit RDn    = P1^6;
+  63          sbit WRn    = P1^5;
+  64          sbit CS1n   = P1^4;
+  65          sbit CS0n   = P1^3;
+  66          sbit A2     = P1^2;
+  67          sbit A1     = P1^1;
+  68          sbit A0     = P1^0;
+  69          sbit tstbit = P4^0;
+  70          
+  71          void disk_sleep(void);
+  72          void disk_wakeup(void);
+  73          unsigned char ATA_Read_Register(unsigned char breg);
+  74          void ATA_Write_Register(unsigned char breg, unsigned char value);
+  75          
+  76          
+  77          void delay(unsigned int);
+  78          
+  79          main()
+  80          {
+  81   1              unsigned char dev_head_reg;
+  82   1      
+  83   1              
+  84   1              AUXR = 0x0C;             //' T89C51AC2 CONFIG SELECT IRAM = 1024 BYTE.
+  85   1              Init_serial(); //' SERIAL SETTING.
+  86   1              EA = 1;                  //' ENABLE INTERRUPT.
+  87   1          ES = 1;                  //' ENABLE SERIAL INTERRUPT.
+  88   1              
+  89   1              P1 = 0xf8;
+  90   1              P2 = 0;
+  91   1      
+  92   1      
+  93   1      
+  94   1      
+  95   1      /*      delay(200);
+  96   1              RESETn = 0;
+  97   1              delay(200);
+  98   1              RESETn = 1;
+  99   1              delay(200);
+ 100   1      */      
+ 101   1              
+ 102   1              Bytes_write = 0;
+ 103   1      
+ 104   1              printf("=======================\n\r");
+ 105   1              printf("8051-IDE system...\n\r");
+ 106   1              printf("Version 1.0 \n\r");
+ 107   1              printf("14 April 2006 @19:30\n\r");
+ 108   1              printf("ktkoson@kmitl.ac.th\n\r");
+ 109   1              printf("all right reserved.\n\r");
+ 110   1              printf("=======================\n\r");
+ 111   1              printf("\n\r");
+ 112   1      
+ 113   1      
+ 114   1              printf("Hard disk diag...\n\r");
+ 115   1              printf("\n\r");
+ 116   1              
+ 117   1      // software reset
+C51 COMPILER V8.02   IDE_51_MAIN                                                           04/18/2006 00:40:36 PAGE 3   
+
+ 118   1          WRn = 1;
+ 119   1              P1 = 0xEE;
+ 120   1              P0 = 0xC0;
+ 121   1              delay(100);
+ 122   1          WRn = 1;
+ 123   1              delay(100);
+ 124   1      
+ 125   1      // DRIVE_RELEASE_CMD
+ 126   1          WRn = 1;
+ 127   1              P1 = 0xEE;
+ 128   1              P0 = 0x08;
+ 129   1              delay(100);
+ 130   1          WRn = 1;
+ 131   1              delay(100);
+ 132   1      
+ 133   1              while( ATA_Read_Register(STATUS_REG)>>7 & 1) ; // wait for busy = 0
+ 134   1      //      ReportAllregister(); 
+ 135   1      //  acall get_devhead_register
+ 136   1              dev_head_reg = ATA_Read_Register(DRIVE_HEAD);
+ 137   1              printf("dev_head_reg = %bx\r\n",dev_head_reg );
+ 138   1      //  clr   ATA_DATA_LS.4             ;set device to 0
+ 139   1              dev_head_reg = dev_head_reg &0xEF;      
+ 140   1      //  acall set_devhead_register
+ 141   1              ATA_Write_Register(DRIVE_HEAD, dev_head_reg);
+ 142   1              printf("dev_head_reg = %bx\r\n",dev_head_reg );
+ 143   1      
+ 144   1      //  acall bsy_wait
+ 145   1              while( ATA_Read_Register(STATUS_REG)>>7 & 1) ; // wait for busy = 0
+ 146   1      
+ 147   1              printf("ATA_Read_Register(CYLINDER_LOW) = %bx\r\n",ATA_Read_Register(CYLINDER_LOW));
+ 148   1              printf("ATA_Read_Register(CYLINDER_HI) = %bx\r\n",ATA_Read_Register(CYLINDER_HI));
+ 149   1               
+ 150   1      
+ 151   1              ATA_Write_Register(COMMAND_REG, 0x90);
+ 152   1              while( ATA_Read_Register(STATUS_REG)>>7 & 1) ; // wait for busy = 0
+ 153   1      
+ 154   1      
+ 155   1              ReportDiskStatus();
+ 156   1      //      ReportDiskError();
+ 157   1      
+ 158   1          while(1){
+ 159   2                      tstbit = !tstbit;
+ 160   2                      delay(10);
+ 161   2                      if(Bytes_write){
+ 162   3                              if(Aux_Data[0] == 's') 
+ 163   3                              {
+ 164   4                                      printf("\r\n execute command ReportDiskStatus() ... \r\n");
+ 165   4                                      ReportDiskStatus();
+ 166   4                              }
+ 167   3                              else if (Aux_Data[0] == 'e') 
+ 168   3                              {
+ 169   4                                      printf("\r\n execute command ReportErrorStatus() ... \r\n");
+ 170   4                                      ReportErrorStatus();
+ 171   4                              }
+ 172   3                              else if (Aux_Data[0] == 'i') 
+ 173   3                              {
+ 174   4                                      printf("\r\n execute command ReportDiskIdentify() ... \r\n");
+ 175   4                                      ReportDiskIdentify();
+ 176   4                              }
+ 177   3                              else if (Aux_Data[0] == 'w') 
+ 178   3                              {
+ 179   4                                      printf("\r\n execute command disk_wakeup() ... \r\n");
+C51 COMPILER V8.02   IDE_51_MAIN                                                           04/18/2006 00:40:36 PAGE 4   
+
+ 180   4                                      disk_wakeup();
+ 181   4                              }
+ 182   3                              else if (Aux_Data[0] == 'd') 
+ 183   3                              {
+ 184   4                                      printf("\r\n execute command disk_sleep() ... \r\n");
+ 185   4                                      disk_sleep();
+ 186   4                              }
+ 187   3                              else if (Aux_Data[0] == 'a') 
+ 188   3                              {
+ 189   4                                      printf("\r\n execute command ReportAllregister() ... \r\n");
+ 190   4                                      ReportAllregister();
+ 191   4                              }
+ 192   3                              else if (Aux_Data[0] == 'm') 
+ 193   3                              {
+ 194   4                                      printf("\r\n execute command getmediastatus() ... \r\n");
+ 195   4                                      ATA_Write_Register(COMMAND_REG,0xDA);
+ 196   4                              }
+ 197   3                              else if (Aux_Data[0] == 'p') 
+ 198   3                              {
+ 199   4                                      printf("\r\n execute command checkpowermode() ... \r\n");
+ 200   4                                      checkpowermode();
+ 201   4                              }
+ 202   3                              else if (Aux_Data[0] == 'r') 
+ 203   3                              {
+ 204   4                                      printf("\r\n execute command devicereset() ... \r\n");
+ 205   4                                      ATA_Write_Register(COMMAND_REG,0x08);
+ 206   4                                      
+ 207   4                              }
+ 208   3                              else if (Aux_Data[0] == 'g') 
+ 209   3                              {
+ 210   4                                      printf("\r\n execute command devicediag() ... \r\n");
+ 211   4                                      ATA_Write_Register(COMMAND_REG,0x90);
+ 212   4                              }
+ 213   3      
+ 214   3      
+ 215   3                              Bytes_write = 0;
+ 216   3                      }
+ 217   2              } 
+ 218   1      }
+ 219          
+ 220          void ReportAllregister()
+ 221          {
+ 222   1              ReportDiskStatus();
+ 223   1              ReportErrorStatus();
+ 224   1              printf("Drive/head register = %bx\r\n", ATA_Read_Register(DRIVE_HEAD));
+ 225   1              printf("Sector count register = %bx\r\n", ATA_Read_Register(SECTOR_COUNT));
+ 226   1              printf("Sector number register = %bx\r\n", ATA_Read_Register(SECTOR_NUMBER));
+ 227   1              printf("Cylinder register (low) = %bx\r\n", ATA_Read_Register(CYLINDER_LOW));
+ 228   1              printf("Cylinder register (hi) = %bx\r\n", ATA_Read_Register(CYLINDER_HI));
+ 229   1              printf("data port register = %bx\r\n", ATA_Read_Register(DATA_PORT));
+ 230   1      
+ 231   1      }
+ 232          
+ 233          
+ 234          /*
+ 235          unsigned char ReadDiskStatus()
+ 236          {
+ 237                  unsigned char reg_val;
+ 238                  CS1n   = 1;
+ 239                  CS0n   = 1;
+ 240                  A2     = 1;
+ 241                  A1     = 1;
+C51 COMPILER V8.02   IDE_51_MAIN                                                           04/18/2006 00:40:36 PAGE 5   
+
+ 242                  A0     = 1;
+ 243                  RDn = 0;
+ 244                  reg_val = P0;
+ 245                  RDn = 1;
+ 246                  return reg_val;
+ 247          }
+ 248          
+ 249          unsigned char ReadDiskErrorReg()
+ 250          {
+ 251                  unsigned char reg_val;
+ 252                  P1 &= ERROR_REG;
+ 253                  RDn = 0;
+ 254                  reg_val = P0;
+ 255                  RDn = 1;
+ 256                  return reg_val;
+ 257          }
+ 258           */
+ 259          void ReportDiskStatus()
+ 260          {
+ 261   1              unsigned char diskstatus;
+ 262   1              diskstatus = ATA_Read_Register(STATUS_REG);
+ 263   1              printf("--------------------------------\n\r");
+ 264   1              printf("status register value  = %bX\n\r",diskstatus);
+ 265   1              printf("BUSY DRDY  DWF  DSC  DRQ  CORR INDEX ERROR \n\r");
+ 266   1              printf("  %bX    %bX    ",diskstatus >> 7 &1  ,diskstatus >> 6 &1);
+ 267   1              printf("%bX    %bX    "  ,diskstatus >> 5 &1,diskstatus >> 4 &1);
+ 268   1              printf("%bX     %bX    " ,diskstatus >> 3 &1,diskstatus >> 2 &1);
+ 269   1              printf("%bX     %bX\n\r" ,diskstatus >> 1 &1,diskstatus &1);
+ 270   1              delay (100);
+ 271   1      
+ 272   1      }
+ 273          
+ 274          unsigned char ATA_Read_Register(unsigned char breg)
+ 275          {
+ 276   1              unsigned char return_val;
+ 277   1              P1 = breg;
+ 278   1              delay(100);
+ 279   1              RDn = 0;
+ 280   1              delay(100);
+ 281   1              return_val = P0;
+ 282   1              delay(100);
+ 283   1              RDn = 1;
+ 284   1              return return_val;
+ 285   1      }
+ 286          
+ 287          void ATA_Write_Register(unsigned char breg, unsigned char value)
+ 288          {
+ 289   1              P1 = breg;
+ 290   1              P0 = value;
+ 291   1              delay(100);
+ 292   1              WRn = 0;
+ 293   1              delay(100);
+ 294   1              WRn = 1;
+ 295   1              delay(100);
+ 296   1      }
+ 297          
+ 298          
+ 299          void ReportErrorStatus()
+ 300          {
+ 301   1              unsigned char diskerrorcode;
+ 302   1              diskerrorcode = ATA_Read_Register(ERROR_REG);
+ 303   1      
+C51 COMPILER V8.02   IDE_51_MAIN                                                           04/18/2006 00:40:36 PAGE 6   
+
+ 304   1              printf("----------------------------------\n\r");
+ 305   1              printf("Error register value  = %bX\n\r",diskerrorcode);
+ 306   1              printf("BBK  UNC   ---- INDF ---  ABRT TK0NF AMNF\n\r");
+ 307   1              printf("  %bX    %bX    ",diskerrorcode >> 7 &1  ,diskerrorcode >> 6 &1);
+ 308   1              printf("%bX    %bX    "  ,diskerrorcode >> 5 &1   ,diskerrorcode >> 4 &1);
+ 309   1              printf("%bX     %bX    " ,diskerrorcode >> 3 &1  ,diskerrorcode >> 2 &1);
+ 310   1              printf("%bX     %bX\n\r" ,diskerrorcode >> 1 &1 ,diskerrorcode  &1);
+ 311   1      }
+ 312          
+ 313          void ReportDiskIdentify()
+ 314          {
+ 315   1                      P1 = 0xF7;
+ 316   1                      P0 = 0xEC;
+ 317   1                      WRn = 0;
+ 318   1                      delay(30000);
+ 319   1                      WRn = 1;
+ 320   1                      printf("ATA_Write_Register(COMMAND_REG,0xEC)\n\r");
+ 321   1      }
+ 322          
+ 323          void disk_sleep(void)
+ 324          {
+ 325   1                      P1 = 0xF7;
+ 326   1                      P0 = 0xE1;
+ 327   1                      delay(3000);
+ 328   1                      WRn = 0;
+ 329   1                      delay(30000);
+ 330   1                      WRn = 1;
+ 331   1                      delay(30000);
+ 332   1      }
+ 333          
+ 334          void disk_wakeup(void)
+ 335          {
+ 336   1                      P1 = 0xF7;
+ 337   1                      P0 = 0xE6;
+ 338   1                      delay(30000);
+ 339   1                      WRn = 0;
+ 340   1                      delay(30000);
+ 341   1                      WRn = 1;
+ 342   1                      delay(30000);
+ 343   1      }
+ 344          
+ 345          
+ 346          void checkpowermode(void)
+ 347          {
+ 348   1                      P1 = 0xF7;
+ 349   1                      P0 = 0xE5;
+ 350   1                      WRn = 0;
+ 351   1                      delay(30000);
+ 352   1                      WRn = 1;
+ 353   1              
+ 354   1      
+ 355   1      }
+ 356          
+ 357          
+ 358          void delay(unsigned int dd)
+ 359          {
+ 360   1              while(dd--) ;
+ 361   1      }
+ 362          
+ 363          /*"(---------------------------------------------------------------------)"*/
+ 364          /*"(-           DEFINE INTERNAL DATA OF SERIAL COMMUNICATION            -)"*/
+ 365          /*"(---------------------------------------------------------------------)"*/
+C51 COMPILER V8.02   IDE_51_MAIN                                                           04/18/2006 00:40:36 PAGE 7   
+
+ 366          /*"(---------------------------------------------------------------------)"*/
+ 367          /*"(-                      INITIAL FUNCTION SERIAL                      -)"*/
+ 368          /*"(---------------------------------------------------------------------)"*/
+ 369          void Init_serial() 
+ 370          {
+ 371   1         //' SET TH1 AND PCON AT FEQUENCY. = 18.432 MHz
+ 372   1         PCON |= 0x80; 
+ 373   1         TH1 = 246;
+ 374   1         SCON = 0x50; 
+ 375   1         TMOD = 0x20; 
+ 376   1         TR1= 1;     //' TIMER 1 RUN.
+ 377   1         TI   = 0;   //' SET TI SEND FIRST CHAR OF UART.
+ 378   1      }
+ 379          
+ 380          /*"(---------------------------------------------------------------------)"*/
+ 381          /*"(-                      APPLICATIONS SEND DATA                       -)"*/
+ 382          /*"(---------------------------------------------------------------------)"*/
+ 383          char putchar(unsigned char c) 
+ 384          {
+ 385   1              SBUF = c; 
+ 386   1              while(!TI);
+ 387   1              TI = 0;      //' CLEAR BIT FLAG TI_0
+ 388   1              return (c);  //' MOV DATA TO SERIAL 
+ 389   1      }
+ 390          
+ 391          /*"(---------------------------------------------------------------------)"*/
+ 392          /*"(-                    APPLICATIONS RECEIVE DATA                      -)"*/
+ 393          /*"(---------------------------------------------------------------------)"*/
+ 394          void RxdReceive () interrupt 4 
+ 395          {
+ 396   1              unsigned char c;
+ 397   1              if (RI == 1) 
+ 398   1              { 
+ 399   2                      c = SBUF;
+ 400   2                      Aux_Data[Bytes_write++] = c; //   
+ 401   2                      Aux_Data[Bytes_write+1] = '\0'; //   
+ 402   2                      RI = 0;
+ 403   2              }
+ 404   1              return;
+ 405   1      }
+ 406          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1105    ----
+   CONSTANT SIZE    =   1183    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     24       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,692 @@
+C51 COMPILER V8.02   IDE_51_MAIN_REV1                                                      04/27/2006 18:50:50 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE IDE_51_MAIN_REV1
+OBJECT MODULE PLACED IN IDE_51_main_rev1.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE IDE_51_main_rev1.c LARGE OMF2
+
+line level    source
+
+   1          #include <REG51AC2.h>
+   2          #include <stdio.h>
+   3          
+   4          #define N 'N'
+   5          #define E 'E'
+   6          #define O 'O'
+   7          #define n 'N'
+   8          #define e 'E'
+   9          #define o 'O'
+  10          
+  11          #define ATA_DEVICE_COUNT_MAX  2
+  12          
+  13          #define ATA_ST_ERR                      0x01
+  14          #define ATA_ST_INDEX            0x02 >> 1 
+  15          #define ATA_ST_CORR                     0x04 >> 2
+  16          #define ATA_ST_DRQ                      0x08 >> 3
+  17          #define ATA_ST_DSC                      0x10 >> 4
+  18          #define ATA_ST_DWF                      0x20 >> 5
+  19          #define ATA_ST_RDY                      0x40 >> 6
+  20          #define ATA_ST_BUSY                     0x80 >> 7
+  21          
+  22          #define ATA_ERR_AMNF            0x01
+  23          #define ATA_ERR_TK0NF           0x02 >> 1
+  24          #define ATA_ERR_ABRT            0x04 >> 2
+  25          #define ATA_ERR_MCR                     0x08 >> 3
+  26          #define ATA_ERR_IDNF            0x10 >> 4
+  27          #define ATA_ERR_MC                      0x20 >> 5
+  28          #define ATA_ERR_UNC                     0x40 >> 6
+  29          #define ATA_ERR_BBK                     0x80 >> 7
+  30          
+  31          #define DATA_PORT                       0xF0
+  32          #define ERROR_REG                       0xF1
+  33          #define SECTOR_COUNT            0xF2
+  34          #define SECTOR_NUMBER           0xF3
+  35          #define CYLINDER_LOW            0xF4
+  36          #define CYLINDER_HI                     0xF5
+  37          #define DRIVE_HEAD                      0xF6
+  38          #define STATUS_REG                      0xF7
+  39          #define COMMAND_REG                     0xF7
+  40          
+  41          #define regATA_DATALSB          0x60    // data reg         in/out
+  42          #define regATA_DATAMSB          0x43    // data reg         in/out
+  43          #define regATA_DATA                     0xF0    // data reg         in/out
+  44          #define regATA_ERROR            0xF1    // error            in    
+  45          #define regATA_FEATURE          0xF1    // feature reg         out
+  46          #define regATA_SECCNT           0xF2    // sector count     in/out
+  47          #define regATA_SECNR            0xF3    // sector number    in/out
+  48          #define regATA_CYLLSB           0xF4    // cylinder low     in/out
+  49          #define regATA_CYLMSB           0xF5    // cylinder high    in/out
+  50          #define regATA_DEVHEAD          0xF6    // device head      in/out
+  51          #define regATA_PRISTAT          0xF7    // primary status   in    
+  52          #define regATA_DEVCMD           0xF7    // command             out
+  53          #define regATA_ALTSTAT          0xEE    // alternate status in    
+  54          #define regATA_DEVCTRL          0xEE    // device control      out
+  55          #define regATA_DEVADDR          0xEF    // device address   in     
+C51 COMPILER V8.02   IDE_51_MAIN_REV1                                                      04/27/2006 18:50:50 PAGE 2   
+
+  56          
+  57          // ATA error register (regATA_ERROR) bitmasks (msk)
+  58          
+  59          #define mskATA_ER_ICRC          0x80    // ATA Ultra DMA bad CRC
+  60          #define mskATA_ER_BBK           0x80    // ATA bad block
+  61          #define mskATA_ER_UNC           0x40    // ATA uncorrected error
+  62          #define mskATA_ER_MC            0x20    // ATA media change
+  63          #define mskATA_ER_IDNF          0x10    // ATA id not found
+  64          #define mskATA_ER_MCR           0x08    // ATA media change request
+  65          #define mskATA_ER_ABRT          0x04    // ATA command aborted
+  66          #define mskATA_ER_NTK0          0x02    // ATA track 0 not found
+  67          #define mskATA_ER_NDAM          0x01    // ATA address mark not found
+  68          
+  69          //#define mskATAPI_ER_SNSKEY    0xf0   // ATAPI sense key (mask)
+  70          //#define mskATAPI_ER_MCR       0x08   // ATAPI Media Change Request
+  71          //#define mskATAPI_ER_ABRT      0x04   // ATAPI command abort
+  72          //#define mskATAPI_ER_EOM       0x02   // ATAPI End of Media
+  73          //#define mskATAPI_ER_ILI       0x01   // ATAPI Illegal Length Indication
+  74          
+  75          // ATAPI Interrupt Reason bits in the Sector Count reg (regATA_SECCNT)
+  76          
+  77          #define regATA_SECCNT_P_TAG     0xf8   // ATAPI tag (mask)
+  78          #define regATA_SECCNT_P_REL     0x04   // ATAPI release
+  79          #define regATA_SECCNT_P_IO      0x02   // ATAPI I/O
+  80          #define regATA_SECCNT_P_CD      0x01   // ATAPI C/D
+  81          
+  82          // bits 7-4 of the device/head (regATA_DEVHEAD) reg
+  83          
+  84          #define regATA_DEVHEAD_DEV0      0x00 // 0xe0   // select device 0
+  85          #define regATA_DEVHEAD_DEV1      0x10 //0xf0  // select device 1
+  86          
+  87          // status reg (regATA_PRISTAT and regATA_ALTSTAT) bits
+  88          
+  89          #define regATA_PRISTAT_BSY  0x80  // busy
+  90          #define regATA_PRISTAT_RDY  0x40  // ready
+  91          #define regATA_PRISTAT_DF   0x20  // device fault
+  92          #define regATA_PRISTAT_WFT  0x20  // write fault (old name)
+  93          #define regATA_PRISTAT_SKC  0x10  // seek complete
+  94          #define regATA_PRISTAT_SERV 0x10  // service
+  95          #define regATA_PRISTAT_DRQ  0x08  // data request
+  96          #define regATA_PRISTAT_CORR 0x04  // corrected
+  97          #define regATA_PRISTAT_IDX  0x02  // index
+  98          #define regATA_PRISTAT_ERR  0x01  // error
+  99          
+ 100          // digital output reg (regATA_DEVCTRL) bitmasks
+ 101          
+ 102          #define regATA_DEVCTRL_HD15   0x00      // 0x08  // bit should always be set to one
+ 103          #define regATA_DEVCTRL_SRST   0x04  // soft reset
+ 104          #define regATA_DEVCTRL_NIEN   0x02  // disable interrupts
+ 105          
+ 106          /**************************************************************/
+ 107          
+ 108          
+ 109          #define ATA_DEVCONFIG_NONE    0
+ 110          #define ATA_DEVCONFIG_UNKNOWN 1
+ 111          #define ATA_DEVCONFIG_ATA     2
+ 112          #define ATA_DEVCONFIG_ATAPI   3
+ 113          
+ 114          
+ 115          // Most mandatory and optional ATA commands (from ATA-3),
+ 116          
+ 117          #define cmdATA_CFA_ERASE_SECTORS            0xC0
+C51 COMPILER V8.02   IDE_51_MAIN_REV1                                                      04/27/2006 18:50:50 PAGE 3   
+
+ 118          #define cmdATA_CFA_REQUEST_EXT_ERR_CODE     0x03
+ 119          #define cmdATA_CFA_TRANSLATE_SECTOR         0x87
+ 120          #define cmdATA_CFA_WRITE_MULTIPLE_WO_ERASE  0xCD
+ 121          #define cmdATA_CFA_WRITE_SECTORS_WO_ERASE   0x38
+ 122          #define cmdATA_CHECK_POWER_MODE1            0xE5
+ 123          #define cmdATA_CHECK_POWER_MODE2            0x98
+ 124          #define cmdATA_DEVICE_RESET                 0x08
+ 125          #define cmdATA_EXECUTE_DEVICE_DIAGNOSTIC    0x90
+ 126          #define cmdATA_FLUSH_CACHE                  0xE7
+ 127          #define cmdATA_FORMAT_TRACK                 0x50
+ 128          #define cmdATA_ATANTIFY_DEVICE              0xEC
+ 129          #define cmdATA_ATANTIFY_DEVICE_PACKET       0xA1
+ 130          #define cmdATA_ATANTIFY_PACKET_DEVICE       0xA1
+ 131          #define cmdATA_IDLE1                        0xE3
+ 132          #define cmdATA_IDLE2                        0x97
+ 133          #define cmdATA_IDLE_IMMEDIATE1              0xE1
+ 134          #define cmdATA_IDLE_IMMEDIATE2              0x95
+ 135          #define cmdATA_INITIALIZE_DRIVE_PARAMETERS  0x91
+ 136          #define cmdATA_INITIALIZE_DEVICE_PARAMETERS 0x91
+ 137          #define cmdATA_NOP                          0x00
+ 138          #define cmdATA_PACKET                       0xA0
+ 139          #define cmdATA_READ_BUFFER                  0xE4
+ 140          #define cmdATA_READ_DMA                     0xC8
+ 141          #define cmdATA_READ_DMA_QUEUED              0xC7
+ 142          #define cmdATA_READ_MULTIPLE                0xC4
+ 143          #define cmdATA_READ_SECTORS                 0x20
+ 144          #define cmdATA_READ_VERIFY_SECTORS          0x40
+ 145          #define cmdATA_RECALIBRATE                  0x10
+ 146          #define cmdATA_SEEK                         0x70
+ 147          #define cmdATA_SET_FEATURES                 0xEF
+ 148          #define cmdATA_SET_MULTIPLE_MODE            0xC6
+ 149          #define cmdATA_SLEEP1                       0xE6
+ 150          #define cmdATA_SLEEP2                       0x99
+ 151          #define cmdATA_STANDBY1                     0xE2
+ 152          #define cmdATA_STANDBY2                     0x96
+ 153          #define cmdATA_STANDBY_IMMEDIATE1           0xE0
+ 154          #define cmdATA_STANDBY_IMMEDIATE2           0x94
+ 155          #define cmdATA_WRITE_BUFFER                 0xE8
+ 156          #define cmdATA_WRITE_DMA                    0xCA
+ 157          #define cmdATA_WRITE_DMA_QUEUED             0xCC
+ 158          #define cmdATA_WRITE_MULTIPLE               0xC5
+ 159          #define cmdATA_WRITE_SECTORS                0x30
+ 160          #define cmdATA_WRITE_VERIFY                 0x3C
+ 161          
+ 162          
+ 163          
+ 164          unsigned int  DataSpeed;
+ 165          unsigned char DataBits;
+ 166          unsigned char Parity;
+ 167          unsigned char StopBits;
+ 168          unsigned char SerialSet;
+ 169          
+ 170          unsigned char g_AtaDevConfig[ATA_DEVICE_COUNT_MAX];
+ 171          
+ 172          
+ 173          void Init_serial();
+ 174          unsigned char Bytes_write; // len data_ethernet
+ 175          unsigned char Aux_Data[32];           //' TCP AUX DATA = INTERGER < PACKET - 55 BYTE AND CHECKRAM
+ 176          unsigned char sectordata[512];
+ 177          
+ 178          
+ 179          sbit RESETn = P1^7;
+C51 COMPILER V8.02   IDE_51_MAIN_REV1                                                      04/27/2006 18:50:50 PAGE 4   
+
+ 180          sbit RDn    = P1^6;
+ 181          sbit WRn    = P1^5;
+ 182          sbit CS1n   = P1^4;
+ 183          sbit CS0n   = P1^3;
+ 184          sbit A2     = P1^2;
+ 185          sbit A1     = P1^1;
+ 186          sbit A0     = P1^0;
+ 187          sbit tstbit = P4^0;
+ 188          
+ 189          void delay(unsigned int);
+ 190          unsigned char READ_ATA_REG (unsigned char REG );
+ 191          unsigned char READ_ATA_REG_HI (unsigned char REG );
+ 192          void WRITE_ATA_REG(unsigned char breg, unsigned char value);
+ 193          void ReportDiskStatus();
+ 194          void rep_all_reg ();
+ 195          void ReportErrorStatus();
+ 196          void wait_ATA_ready();
+ 197          int AtaQueryDevice(void);
+ 198          int AtaResetAdapter(void);
+ 199          unsigned char AtaReadRegister(unsigned char p_ucRegister);
+ 200          void AtaWriteRegister(unsigned char p_ucRegister, unsigned char p_ucData);
+ 201          char AtaSelectDevice(unsigned char p_ucDevice);
+ 202          unsigned char word_counter = 0;
+ 203          
+ 204          
+ 205          
+ 206          
+ 207          
+ 208          main()
+ 209          {
+ 210   1              unsigned int i = 0;
+ 211   1              
+ 212   1              AUXR = 0x0C;    //' T89C51AC2 CONFIG SELECT IRAM = 1024 BYTE.
+ 213   1              Init_serial();  //' SERIAL SETTING.
+ 214   1              //IT0 = 1;              //' Falling edge interrupt 0
+ 215   1              //EX0 = 1;              //' Enable INT0 interrupt
+ 216   1              EA = 1;         //' ENABLE INTERRUPT.
+ 217   1          ES = 1;         //' ENABLE SERIAL INTERRUPT.
+ 218   1      
+ 219   1              P1 = 0xf8;
+ 220   1              P2 = 0;
+ 221   1      
+ 222   1              Bytes_write = 0;
+ 223   1              printf(":RZ00\n"); // send hw reset to PC
+ 224   1              printf("=======================\n\r");
+ 225   1              printf("8051-IDE system...\n\r");
+ 226   1              printf("Version 1.0 \n\r");
+ 227   1              printf("14 April 2006 @19:30\n\r");
+ 228   1              printf("ktkoson@kmitl.ac.th\n\r");
+ 229   1              printf("all right reserved.\n\r");
+ 230   1              printf("=======================\n\r");
+ 231   1              printf("\n\r");
+ 232   1      
+ 233   1      
+ 234   1              printf("Hard disk diag...\n\r");
+ 235   1              printf("\n\r");
+ 236   1      
+ 237   1              RESETn = 0;
+ 238   1              delay(100);
+ 239   1              RESETn = 1;
+ 240   1              delay(100);
+ 241   1      
+C51 COMPILER V8.02   IDE_51_MAIN_REV1                                                      04/27/2006 18:50:50 PAGE 5   
+
+ 242   1      
+ 243   1                      
+ 244   1              wait_ATA_ready(); 
+ 245   1              printf("Harddisk ready...\r\n");
+ 246   1      
+ 247   1              rep_all_reg ();
+ 248   1              
+ 249   1              //printf("AtaQueryDevice() = %d... \r\n ",  AtaQueryDevice());
+ 250   1      
+ 251   1       
+ 252   1         // AtaWriteRegister(regATA_DEVCMD, cmdATA_STANDBY_IMMEDIATE1 );
+ 253   1      
+ 254   1              //rep_all_reg ();        
+ 255   1              //AtaSelectDevice(0);
+ 256   1              /*
+ 257   1      
+ 258   1      
+ 259   1         printf("WRITE_ATA_REG(COMMAND_REG, 0xE1);...\r\n");
+ 260   1      
+ 261   1         WRITE_ATA_REG(COMMAND_REG, 0xE1);
+ 262   1         wait_ATA_ready();    
+ 263   1         
+ 264   1         rep_all_reg ();
+ 265   1      */
+ 266   1         //WRITE_ATA_REG(COMMAND_REG, 0xEC);
+ 267   1      
+ 268   1         wait_ATA_ready();    
+ 269   1         printf("hello\n");
+ 270   1      
+ 271   1          while(1){
+ 272   2                      if(Bytes_write)
+ 273   2                      {
+ 274   3                              //printf("Bytes_write %bd auxdata = [%s]\n\r", Bytes_write,Aux_Data);
+ 275   3                              if(Aux_Data[0] != ':')
+ 276   3                              {
+ 277   4                                      printf(":err\n");
+ 278   4                                      Bytes_write = 0;
+ 279   4                                      Aux_Data[0] = 0;
+ 280   4                                      Aux_Data[1] = 0;
+ 281   4                                      continue;
+ 282   4                              } 
+ 283   3                              if(Aux_Data[Bytes_write-1] == ':')
+ 284   3                              { 
+ 285   4                                      // printf("Start of code\n");
+ 286   4                                      continue;
+ 287   4                              }
+ 288   3                              if(Aux_Data[Bytes_write-1] == 0x0d) 
+ 289   3                              {
+ 290   4                                      //printf("%s\n",Aux_Data);
+ 291   4                                      Bytes_write=0;
+ 292   4                                      switch(Aux_Data[1])
+ 293   4                                      {
+ 294   5                                              case  'w' :
+ 295   5                                              switch (Aux_Data[2])
+ 296   5                                              {
+ 297   6                                                      case 'b': 
+ 298   6                                                              printf("Write Buffer\n");
+ 299   6                                                              break;
+ 300   6                                                      case 'r':
+ 301   6                                                              printf("Write Register\n");
+ 302   6                                                              break;   
+ 303   6                                                      case 's':
+C51 COMPILER V8.02   IDE_51_MAIN_REV1                                                      04/27/2006 18:50:50 PAGE 6   
+
+ 304   6                                                              printf("Write Sector\n");
+ 305   6                                                              break;   
+ 306   6                                                      default:
+ 307   6                                                              printf("Command not implemented\n");
+ 308   6                                                      break;
+ 309   6                                              }
+ 310   5                                              break;
+ 311   5      
+ 312   5                                              case 'r':
+ 313   5                                              switch(Aux_Data[2])
+ 314   5                                              {
+ 315   6                                                      case 'b': 
+ 316   6                                                              printf("Read Buffer\n");
+ 317   6                                                              break;                          
+ 318   6                                                      case 'r' :
+ 319   6                                                              rep_all_reg ();
+ 320   6                                                              break;                          
+ 321   6                                                      case 's' :
+ 322   6                                                              printf("Read Sector\n");
+ 323   6                                                              break;  
+ 324   6                                                      case 'e' :
+ 325   6                                                              printf(":RER%c\n", AtaReadRegister(regATA_ERROR));
+ 326   6                                                              break;  
+ 327   6                                                      case 't' :
+ 328   6                                                              printf(":RTR%c\n", AtaReadRegister(regATA_PRISTAT));
+ 329   6                                                              break;  
+ 330   6                                                                                      
+ 331   6                                                      default:
+ 332   6                                                              printf("Command not implemented\n");
+ 333   6                                                      break;
+ 334   6                                              } 
+ 335   5                                              break;
+ 336   5                                              default:
+ 337   5                                              printf("Command not implemented\n");
+ 338   5                                              break;
+ 339   5                                      }
+ 340   4                              }
+ 341   3                      }       
+ 342   2              }
+ 343   1      }
+ 344          
+ 345          
+ 346          
+ 347          void int0_isr (void) interrupt 0
+ 348          {
+ 349   1              sectordata[word_counter++] = AtaReadRegister( regATA_DATA );
+ 350   1              sectordata[word_counter++] = P2;
+ 351   1      }
+ 352          
+ 353          /*********************
+ 354           * AtaQueryDevice
+ 355           *      Checks the host adapter and determines the number and type of drives attached.
+ 356           *      
+ 357           *      This function fills the global variable g_AtaDevConfig.
+ 358           *      For values see ata.h, the DEVCONFIG values.
+ 359           *
+ 360           *      The number of drives found is returned as the function result
+ 361           */
+ 362          int AtaQueryDevice(void)
+ 363          {
+ 364   1        int           iNumDev = 0;
+ 365   1        unsigned char ucSecCnt;
+C51 COMPILER V8.02   IDE_51_MAIN_REV1                                                      04/27/2006 18:50:50 PAGE 7   
+
+ 366   1        unsigned char ucSecNr;
+ 367   1        unsigned char ucCylLow;
+ 368   1        unsigned char ucCylHigh;
+ 369   1        unsigned char ucStatus;
+ 370   1        int           iATA;
+ 371   1      
+ 372   1        iNumDev = 0;
+ 373   1      
+ 374   1        // Query the host adapter to determine the drives attached
+ 375   1        for (iATA = 0; iATA < ATA_DEVICE_COUNT_MAX; iATA++)
+ 376   1        {
+ 377   2          // Assume we have no device attached at all
+ 378   2          g_AtaDevConfig[iATA] = ATA_DEVCONFIG_NONE;
+ 379   2          
+ 380   2          // Issue a reset command for this (possible) device
+ 381   2          AtaResetAdapter();
+ 382   2      
+ 383   2          // Check the device again by reading the signature in the sectorcount/number registers.
+ 384   2          AtaWriteRegister(regATA_DEVHEAD, iATA == 0 ? regATA_DEVHEAD_DEV0 : regATA_DEVHEAD_DEV1);
+ 385   2          ucSecCnt = AtaReadRegister( regATA_SECCNT );
+ 386   2          ucSecNr  = AtaReadRegister( regATA_SECNR );
+ 387   2          
+ 388   2          if ((ucSecCnt == 0x01) && (ucSecNr == 0x01))
+ 389   2          {
+ 390   3            // At least something is out there, but still unknown...
+ 391   3            g_AtaDevConfig[iATA] = ATA_DEVCONFIG_UNKNOWN;
+ 392   3            
+ 393   3            // To determine ATA or ATAPI, read the signature in the cylinder registers
+ 394   3            ucCylLow  = AtaReadRegister( regATA_CYLLSB );
+ 395   3            ucCylHigh = AtaReadRegister( regATA_CYLMSB );
+ 396   3            ucStatus  = AtaReadRegister( regATA_PRISTAT );
+ 397   3            
+ 398   3            // Signature is ATAPI ???
+ 399   3            if ((ucCylLow == 0x14) && (ucCylHigh == 0xeb))
+ 400   3            {
+ 401   4              g_AtaDevConfig[iATA] = ATA_DEVCONFIG_ATAPI;
+ 402   4              printf("ATAPI\r\n");
+ 403   4              iNumDev++;
+ 404   4            }
+ 405   3            else
+ 406   3            {
+ 407   4              // Signature is ATA ???
+ 408   4              if ( ( ucCylLow == 0x00 ) && ( ucCylHigh == 0x00 ) && ( ucStatus != 0x00 ) )
+ 409   4              {
+ 410   5                g_AtaDevConfig[iATA] = ATA_DEVCONFIG_ATA;
+ 411   5                printf("ATA\r\n");
+ 412   5                iNumDev++;
+ 413   5              }
+ 414   4            }
+ 415   3          }
+ 416   2        }
+ 417   1        return iNumDev;
+ 418   1      }
+ 419          
+ 420          /*********************
+ 421           * AtaResetAdapter
+ 422           *      Resets the device(s) attached to the host adapter and automatically
+ 423           *      selects device 0.
+ 424           */
+ 425          
+ 426          int AtaResetAdapter(void)
+ 427          {
+C51 COMPILER V8.02   IDE_51_MAIN_REV1                                                      04/27/2006 18:50:50 PAGE 8   
+
+ 428   1        unsigned char ucStatus;
+ 429   1        unsigned char ucDevCtrl;
+ 430   1      
+ 431   1        // setup register values
+ 432   1        ucDevCtrl = regATA_DEVCTRL_HD15 | regATA_DEVCTRL_NIEN;
+ 433   1      
+ 434   1        // Set and then reset the soft reset bit in the Device Control
+ 435   1        // register.  This causes device 0 be selected.
+ 436   1      
+ 437   1        AtaWriteRegister( regATA_DEVCTRL, ucDevCtrl | regATA_DEVCTRL_SRST);
+ 438   1        AtaWriteRegister( regATA_DEVCTRL, ucDevCtrl );
+ 439   1        
+ 440   1        while (1)
+ 441   1        {
+ 442   2          ucStatus = AtaReadRegister(regATA_PRISTAT);
+ 443   2          if ((ucStatus & (regATA_PRISTAT_BSY | regATA_PRISTAT_DRQ)) == 0)
+ 444   2            break;
+ 445   2        }
+ 446   1        AtaWriteRegister(regATA_DEVHEAD, regATA_DEVHEAD_DEV0);
+ 447   1        while (1)
+ 448   1        {
+ 449   2          ucStatus = AtaReadRegister(regATA_PRISTAT);
+ 450   2          if ((ucStatus & (regATA_PRISTAT_BSY | regATA_PRISTAT_DRQ)) == 0)
+ 451   2            break;
+ 452   2        }
+ 453   1        
+ 454   1        return 0;
+ 455   1      }
+ 456          
+ 457          
+ 458          
+ 459          unsigned char AtaReadRegister(unsigned char p_ucRegister)
+ 460          {
+ 461   1        unsigned char ata_reg;
+ 462   1        ata_reg = READ_ATA_REG((unsigned char)p_ucRegister);
+ 463   1        //printf("READ_ATA_REG (%bx) = %bx \r\n",p_ucRegister, ata_reg);
+ 464   1        return ata_reg; 
+ 465   1      }
+ 466          
+ 467          
+ 468          
+ 469          /*********************
+ 470           * AtaWriteRegister
+ 471           *      Wrapper (should become obsolete) to call the assembly function to write an 8-bit register
+ 472           *      given by the register argument and the 8-bit data to write.
+ 473           *
+ 474           */
+ 475          void AtaWriteRegister(unsigned char p_ucRegister, unsigned char p_ucData)
+ 476          {
+ 477   1       
+ 478   1              WRITE_ATA_REG((unsigned char)p_ucRegister, p_ucData);
+ 479   1              //printf("WRITE_ATA_REG(%bx, %bx) \r\n",p_ucRegister, p_ucData);
+ 480   1      
+ 481   1      }
+ 482          
+ 483          /*
+ 484          char AtaSelectDevice(unsigned char p_ucDevice)
+ 485          {
+ 486            unsigned char ucStatus;
+ 487          
+ 488             while ( 1 ) 
+ 489             { 
+C51 COMPILER V8.02   IDE_51_MAIN_REV1                                                      04/27/2006 18:50:50 PAGE 9   
+
+ 490                ucStatus = AtaReadRegister( regATA_PRISTAT ); 
+ 491                printf("ATA-HOST_BSY0_DRQ0 = %bx\r\n", ucStatus);  
+ 492                if ( ( ucStatus & (regATA_PRISTAT_ERR) ) != 0 ) 
+ 493                   break; 
+ 494                 if ( ( ucStatus & (regATA_PRISTAT_BSY  | regATA_PRISTAT_DRQ ) ) == 0 )  
+ 495                   break; 
+ 496             } 
+ 497          
+ 498          
+ 499            // Here we select the drive we really want to work with by
+ 500            // putting 0xA0 or 0xB0 in the Drive/Head register.
+ 501          
+ 502            AtaWriteRegister(regATA_DEVHEAD, p_ucDevice ? regATA_DEVHEAD_DEV1 : regATA_DEVHEAD_DEV0 );
+ 503          
+ 504            ucStatus = AtaReadRegister( regATA_ALTSTAT );
+ 505          
+ 506            // we always return 0. All errors are ignored.
+ 507            return 0;
+ 508          }
+ 509          
+ 510          */
+ 511          
+ 512          
+ 513          void wait_ATA_ready()
+ 514          {
+ 515   1              //printf("Wait for ata ready...\r\n");
+ 516   1              while( (READ_ATA_REG(STATUS_REG) & 0x80)) ;       // wait for not busy
+ 517   1              while(!(READ_ATA_REG(STATUS_REG) & 0x40));        // wait for ready
+ 518   1      
+ 519   1      }
+ 520          
+ 521          
+ 522          void rep_all_reg ()
+ 523          {
+ 524   1              printf("\n");
+ 525   1              printf(":RSC%c\n", READ_ATA_REG(SECTOR_COUNT));
+ 526   1              printf(":RSN%c\n", READ_ATA_REG(SECTOR_NUMBER));
+ 527   1              printf(":RCL%c\n", READ_ATA_REG(CYLINDER_LOW));
+ 528   1              printf(":RCH%c\n", READ_ATA_REG(CYLINDER_HI));
+ 529   1              printf(":RSD%c\n", READ_ATA_REG(DRIVE_HEAD));
+ 530   1              printf(":RTR%c\n", READ_ATA_REG(STATUS_REG));
+ 531   1              printf(":RER%c\n", READ_ATA_REG(ERROR_REG));
+ 532   1      }
+ 533          /*
+ 534          void ReportDiskStatus()
+ 535          {
+ 536                  unsigned char diskstatus;
+ 537                  diskstatus = READ_ATA_REG(STATUS_REG);
+ 538                  printf("--------------------------------\n\r");
+ 539                  printf("status register value  = %bX\n\r",diskstatus);
+ 540                  printf("BUSY DRDY  DWF  DSC  DRQ  CORR INDEX ERROR \n\r");
+ 541                  printf("  %bX    %bX    ",diskstatus >> 7 &1  ,diskstatus >> 6 &1);
+ 542                  printf("%bX    %bX    "  ,diskstatus >> 5 &1,diskstatus >> 4 &1);
+ 543                  printf("%bX     %bX    " ,diskstatus >> 3 &1,diskstatus >> 2 &1);
+ 544                  printf("%bX     %bX\n\r" ,diskstatus >> 1 &1,diskstatus &1);
+ 545                  delay (100);
+ 546          
+ 547          }
+ 548          
+ 549          void ReportErrorStatus()
+ 550          {
+ 551                  unsigned char diskerrorcode;
+C51 COMPILER V8.02   IDE_51_MAIN_REV1                                                      04/27/2006 18:50:50 PAGE 10  
+
+ 552                  diskerrorcode = READ_ATA_REG(ERROR_REG);
+ 553          
+ 554                  printf("----------------------------------\n\r");
+ 555                  printf("Error register value  = %bX\n\r",diskerrorcode);
+ 556                  printf("BBK  UNC   ---- INDF ---  ABRT TK0NF AMNF\n\r");
+ 557                  printf("  %bX    %bX    ",diskerrorcode >> 7 &1  ,diskerrorcode >> 6 &1);
+ 558                  printf("%bX    %bX    "  ,diskerrorcode >> 5 &1   ,diskerrorcode >> 4 &1);
+ 559                  printf("%bX     %bX    " ,diskerrorcode >> 3 &1  ,diskerrorcode >> 2 &1);
+ 560                  printf("%bX     %bX\n\r" ,diskerrorcode >> 1 &1 ,diskerrorcode  &1);
+ 561          }
+ 562          
+ 563          */
+ 564          unsigned char READ_ATA_REG (unsigned char REG )
+ 565          {
+ 566   1              unsigned char return_val;
+ 567   1              P1 = REG;
+ 568   1              RDn = 0;
+ 569   1              return_val = P0;
+ 570   1              RDn = 1;
+ 571   1              return return_val;
+ 572   1      }                  
+ 573          /*
+ 574          unsigned char READ_ATA_REG_HI (unsigned char REG )
+ 575          {
+ 576                  unsigned char return_val;
+ 577                  P1 = REG;
+ 578                  RDn = 0;
+ 579                  return_val = P2;
+ 580                  RDn = 1;
+ 581                  return return_val;
+ 582          }                  
+ 583          */
+ 584          void WRITE_ATA_REG(unsigned char breg, unsigned char value)
+ 585          {
+ 586   1              while( (READ_ATA_REG(STATUS_REG) & 0x80)) ;
+ 587   1              P0 = value;
+ 588   1              delay(50);
+ 589   1              P1 = breg;
+ 590   1              delay(50);
+ 591   1              WRn = 0;
+ 592   1              delay(50);
+ 593   1              WRn = 1;
+ 594   1      }
+ 595          
+ 596          
+ 597          void delay(unsigned int dd)
+ 598          {
+ 599   1              while(dd--) ;
+ 600   1      }
+ 601          
+ 602          /*"(---------------------------------------------------------------------)"*/
+ 603          /*"(-           DEFINE INTERNAL DATA OF SERIAL COMMUNICATION            -)"*/
+ 604          /*"(---------------------------------------------------------------------)"*/
+ 605          /*"(---------------------------------------------------------------------)"*/
+ 606          /*"(-                      INITIAL FUNCTION SERIAL                      -)"*/
+ 607          /*"(---------------------------------------------------------------------)"*/
+ 608          void Init_serial() 
+ 609          {
+ 610   1         //' SET TH1 AND PCON AT FEQUENCY. = 18.432 MHz
+ 611   1         PCON |= 0x80; 
+ 612   1         TH1 = 246;
+ 613   1         SCON = 0x50; 
+C51 COMPILER V8.02   IDE_51_MAIN_REV1                                                      04/27/2006 18:50:50 PAGE 11  
+
+ 614   1         TMOD = 0x20; 
+ 615   1         TR1= 1;     //' TIMER 1 RUN.
+ 616   1         TI   = 0;   //' SET TI SEND FIRST CHAR OF UART.
+ 617   1      }
+ 618          
+ 619          /*"(---------------------------------------------------------------------)"*/
+ 620          /*"(-                      APPLICATIONS SEND DATA                       -)"*/
+ 621          /*"(---------------------------------------------------------------------)"*/
+ 622          char putchar(unsigned char c) 
+ 623          {
+ 624   1              SBUF = c; 
+ 625   1              while(!TI);
+ 626   1              TI = 0;      //' CLEAR BIT FLAG TI_0
+ 627   1              return (c);  //' MOV DATA TO SERIAL 
+ 628   1      }
+ 629          
+ 630          /*"(---------------------------------------------------------------------)"*/
+ 631          /*"(-                    APPLICATIONS RECEIVE DATA                      -)"*/
+ 632          /*"(---------------------------------------------------------------------)"*/
+ 633          void RxdReceive () interrupt 4 
+ 634          {
+ 635   1              unsigned char c;
+ 636   1              if (RI == 1) 
+ 637   1              { 
+ 638   2                      c = SBUF;
+ 639   2                      Aux_Data[Bytes_write++] = c; //   
+ 640   2                      Aux_Data[Bytes_write+1] = '\0'; //   
+ 641   2                      RI = 0;
+ 642   2              }
+ 643   1              return;
+ 644   1      }
+ 645          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1186    ----
+   CONSTANT SIZE    =    359    ----
+   XDATA SIZE       =    554      13
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

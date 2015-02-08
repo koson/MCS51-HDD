@@ -1,0 +1,479 @@
+C51 COMPILER V8.02   FAT                                                                   12/23/2006 00:34:02 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE FAT
+OBJECT MODULE PLACED IN fat.OBJ
+COMPILER INVOKED BY: C:\Program Files\Keil\C51\BIN\C51.EXE fat.c LARGE OMF2 DEBUG
+
+line level    source
+
+   1          #include "fat.h"
+   2          #define DRIVE0          0
+   3          #include "ata.h"
+   4          #include <stdio.h>
+   5          #include "rprintf.h"
+   6          #include <string.h>
+   7          
+   8          #define DEBUG_FAT 1
+   9          #define WE_INFO 1
+  10          
+  11          struct partrecord idata PartInfo;
+  12          unsigned char idata Fat32Enabled;
+  13          unsigned long idata FirstDataSector;
+  14          unsigned int  idata BytesPerSector;
+  15          unsigned int  idata SectorsPerCluster;
+  16          unsigned long idata FirstFATSector;
+  17          unsigned long idata FirstDirSector;
+  18          unsigned long idata FileSize;
+  19          unsigned long idata FatInCache = 0;
+  20          unsigned char *SectorBuffer;
+  21          extern unsigned char sectordata[512];
+  22          unsigned char DirBuffer[128];
+  23          unsigned char LongBuffer[32];
+  24          unsigned char *DirNameBuffer;
+  25          unsigned char *LongNameBuffer;
+  26          
+  27          //-----------------------------------------------------------------------------
+  28          // IDE_SectorWord: Function is used to retrieve a word from the 'currentsector'
+  29          // array. The value passed in must be between 0 - 510.
+  30          //
+  31          // Parameters: Word location within currentsector
+  32          //
+  33          // Returns: Word of data requested from currentsector
+  34          //-----------------------------------------------------------------------------
+  35          WORD IDE_SectorWORD(WORD wtc) // Return Word at position specified
+  36          {
+  37   1               idata WORD dat=0; 
+  38   1               idata WORD A,B;
+  39   1               
+  40   1               A =  wtc & 0xff00;
+  41   1               B =  wtc & 0x00ff;
+  42   1               dat=(B <<= 8) + (A >>= 8);               
+  43   1      
+  44   1               return (dat);                                                           // Return value
+  45   1      }
+  46          
+  47          //-----------------------------------------------------------------------------
+  48          // IDE_SectorUI32: Function is used to retrieve a 32 bit value from the 
+  49          // 'currentsector' array. The value passed in must be between 0 - 511.
+  50          //
+  51          // Parameters: Word offset within current sector
+  52          //
+  53          // Returns: 32 bit unsigned data as requested
+  54          //
+  55          // Functions Used: None
+C51 COMPILER V8.02   FAT                                                                   12/23/2006 00:34:02 PAGE 2   
+
+  56          //
+  57          //-----------------------------------------------------------------------------
+  58          DWORD IDE_SectorDWORD(DWORD dwtc) // Return UI32 at position specified
+  59          {
+  60   1          DWORD dat=0; 
+  61   1              DWORD A,B,C,D;
+  62   1              
+  63   1              A = dwtc & 0xff000000;          // Read the four bytes which make up
+  64   1              B = dwtc & 0x00ff0000;    // the 32-bit value
+  65   1              C = dwtc & 0x0000ff00;
+  66   1              D = dwtc & 0x000000ff;         
+  67   1      
+  68   1          dat=(D <<= 24) + (C <<= 8) + ( B >>= 8) + (A >>= 24); //Combine into correct order
+  69   1              return (dat);                                                            // Return value
+  70   1      }
+  71          
+  72          unsigned long fatClustToSect(unsigned long clust)
+  73          {
+  74   1         
+  75   1          printf("(("); rprintfu32(clust) ; printf("-2)*");
+  76   1          rprintfu16(SectorsPerCluster);  printf(")+");  rprintfu32(FirstDataSector);
+  77   1          printf("=");
+  78   1      
+  79   1      
+  80   1              return ((clust-2) * SectorsPerCluster) + FirstDataSector;
+  81   1      }
+  82          
+  83          unsigned int fatClusterSize(void)
+  84          {
+  85   1              // return the number of sectors in a disk cluster
+  86   1              return SectorsPerCluster;
+  87   1      }
+  88          
+  89          unsigned char fatInit( unsigned char device)
+  90          {
+  91   1              //struct partrecord *pr;
+  92   1              struct bpb710 *bpb;
+  93   1      
+  94   1              // read partition table
+  95   1              // TODO.... error checking
+  96   1              SectorBuffer = sectordata;
+  97   1              ataReadSectors(device, 0, 1, SectorBuffer);
+  98   1              // map first partition record   
+  99   1              // save partition information to global PartInfo
+ 100   1              PartInfo = *((struct partrecord *) ((struct partsector *) SectorBuffer)->psPart);
+ 101   1      //      PartInfo = *pr;
+ 102   1              
+ 103   1              // Read the Partition BootSector
+ 104   1              // **first sector of partition in PartInfo.prStartLBA
+ 105   1              ataReadSectors( device, IDE_SectorDWORD(PartInfo.prStartLBA), 1, SectorBuffer );
+ 106   1              bpb = (struct bpb710 *) ((struct bootsector710 *) SectorBuffer)->bsBPB;
+ 107   1      
+ 108   1      
+ 109   1              // setup global disk constants
+ 110   1              FirstDataSector = IDE_SectorDWORD(PartInfo.prStartLBA);
+ 111   1              if(bpb->bpbFATsecs)
+ 112   1              {
+ 113   2                      // bpbFATsecs is non-zero and is therefore valid
+ 114   2                      FirstDataSector += IDE_SectorWORD(bpb->bpbResSectors) + bpb->bpbFATs * IDE_SectorWORD(bpb->bpbFATsecs);
+ 115   2              }
+ 116   1              else
+ 117   1              {
+C51 COMPILER V8.02   FAT                                                                   12/23/2006 00:34:02 PAGE 3   
+
+ 118   2                      // bpbFATsecs is zero, real value is in bpbBigFATsecs
+ 119   2                      FirstDataSector += IDE_SectorWORD(bpb->bpbResSectors) + bpb->bpbFATs * IDE_SectorDWORD(bpb->bpbBigFATsec
+             -s);
+ 120   2              }
+ 121   1              SectorsPerCluster       = bpb->bpbSecPerClust;
+ 122   1              BytesPerSector          = IDE_SectorWORD(bpb->bpbBytesPerSec);
+ 123   1              FirstFATSector          = IDE_SectorWORD(bpb->bpbResSectors) + IDE_SectorDWORD(PartInfo.prStartLBA);
+ 124   1      
+ 125   1              switch (PartInfo.prPartType)
+ 126   1              {
+ 127   2                      case PART_TYPE_DOSFAT16:
+ 128   2                      case PART_TYPE_FAT16:
+ 129   2                      case PART_TYPE_FAT16LBA:
+ 130   2                              // first directory cluster is 2 by default (clusters range 2->big)
+ 131   2                              FirstDirSector  = CLUST_FIRST;
+ 132   2                              // push data sector pointer to end of root directory area
+ 133   2                              //FirstDataSector += (bpb->bpbRootDirEnts)/DIRENTRIES_PER_SECTOR;
+ 134   2                              Fat32Enabled = FALSE; // 
+ 135   2                              break;
+ 136   2                      case PART_TYPE_FAT32LBA:
+ 137   2                      case PART_TYPE_FAT32:
+ 138   2                              // bpbRootClust field exists in FAT32 bpb710, but not in lesser bpb's
+ 139   2                              FirstDirSector = IDE_SectorDWORD(bpb->bpbRootClust);
+ 140   2                              // push data sector pointer to end of root directory area
+ 141   2                              // need this? FirstDataSector += (bpb->bpbRootDirEnts)/DIRENTRIES_PER_SECTOR;
+ 142   2                              Fat32Enabled = TRUE;
+ 143   2                              break;
+ 144   2                      default:
+ 145   2                              printf("Found: No Partition!\r\n");
+ 146   2                              //return 1;
+ 147   2                              break;
+ 148   2              }
+ 149   1      
+ 150   1      
+ 151   1              switch (PartInfo.prPartType)
+ 152   1              {
+ 153   2                      case PART_TYPE_DOSFAT16:
+ 154   2                                      printf("Found: DOSFAT 16\r\n");
+ 155   2                                      break;
+ 156   2                      case PART_TYPE_FAT16:
+ 157   2                                      printf("Found: FAT16\r\n");
+ 158   2                                      break;
+ 159   2                      case PART_TYPE_FAT16LBA:
+ 160   2                                      printf("Found: FAT16 LBA\r\n");
+ 161   2                                      break;
+ 162   2                      case PART_TYPE_FAT32LBA:
+ 163   2                                      printf("Found: FAT32 LBA\r\n");
+ 164   2                                      break;
+ 165   2                      case PART_TYPE_FAT32:
+ 166   2                                      printf("Found: FAT32\r\n");
+ 167   2                                      //return 1;     
+ 168   2                                      break;
+ 169   2                      default:
+ 170   2                                      printf("Found: No Partition!\r\n");
+ 171   2                                      //return 1;
+ 172   2                                      break;
+ 173   2              }
+ 174   1      
+ 175   1      #ifdef DEBUG_FAT
+ 176   1              printf("BPB [bpb710]:-----------------\n\r");
+ 177   1              printf("bpbBytesPerSec : ");    rprintfu16(IDE_SectorWORD(bpb->bpbBytesPerSec));        rprintfCRLF();
+ 178   1              printf("bpbSecPerClust : ");    rprintfu08(bpb->bpbSecPerClust);                                        rprintfCRLF();
+C51 COMPILER V8.02   FAT                                                                   12/23/2006 00:34:02 PAGE 4   
+
+ 179   1              printf("bpbResSectors  : ");    rprintfu16(IDE_SectorWORD(bpb->bpbResSectors)); rprintfCRLF();
+ 180   1              printf("bpbFATs        : ");    rprintfu08(bpb->bpbFATs);                                                       rprintfCRLF();
+ 181   1              printf("bpbRootDirEnts : ");    rprintfu16(IDE_SectorWORD(bpb->bpbRootDirEnts));        rprintfCRLF();
+ 182   1              printf("bpbSectors         : ");        rprintfu16(IDE_SectorWORD(bpb->bpbSectors));            rprintfCRLF();
+ 183   1              printf("bpbMedia           : ");        rprintfu08(bpb->bpbMedia);                                                      rprintfCRLF();
+ 184   1              printf("bpbFATsecs         : ");        rprintfu16(IDE_SectorWORD(bpb->bpbFATsecs));            rprintfCRLF();
+ 185   1              printf("bpbSecPerTrack : ");    rprintfu16(IDE_SectorWORD(bpb->bpbSecPerTrack));        rprintfCRLF();
+ 186   1              printf("bpbHeads           : ");        rprintfu16(IDE_SectorWORD(bpb->bpbHeads));                      rprintfCRLF();
+ 187   1              printf("bpbHiddenSecs  : ");    rprintfu32(IDE_SectorDWORD(bpb->bpbHiddenSecs));        rprintfCRLF();
+ 188   1              printf("bpbHugeSectors : ");    rprintfu32(IDE_SectorDWORD(bpb->bpbHugeSectors));       rprintfCRLF();
+ 189   1              printf("bpbBigFATsecs  : ");    rprintfu32(IDE_SectorDWORD(bpb->bpbBigFATsecs));        rprintfCRLF();
+ 190   1              printf("bpbExtFlags        : ");        rprintfu16(IDE_SectorWORD(bpb->bpbExtFlags));           rprintfCRLF();
+ 191   1              printf("bpbFSVers          : ");        rprintfu16(IDE_SectorWORD(bpb->bpbFSVers));             rprintfCRLF();
+ 192   1              printf("bpbRootClust   : ");    rprintfu32(IDE_SectorDWORD(bpb->bpbRootClust));         rprintfCRLF();
+ 193   1              printf("bpbFSInfo          : ");        rprintfu16(IDE_SectorWORD(bpb->bpbFSInfo));             rprintfCRLF();
+ 194   1              printf("bpbBackup          : ");        rprintfu16(IDE_SectorWORD(bpb->bpbBackup));             rprintfCRLF();
+ 195   1              printf("End [bpb710]--------------------\n\r");
+ 196   1              printf("First sector    : ");           rprintfu32(IDE_SectorDWORD(PartInfo.prStartLBA));       rprintfCRLF();
+ 197   1              printf("Size            : ");   rprintfu32(IDE_SectorDWORD(PartInfo.prSize));           rprintfCRLF();
+ 198   1              printf("First Fat Sector: ");   rprintfu32(FirstFATSector);                     rprintfCRLF();
+ 199   1              printf("First Data Sect : ");   rprintfu32(FirstDataSector);            rprintfCRLF();
+ 200   1              printf("First Dir Clust : ");   rprintfu32(FirstDirSector);                     rprintfCRLF();
+ 201   1      #endif
+ 202   1              return 0;       
+ 203   1      }
+ 204          
+ 205          unsigned int baseentry = 0;
+ 206          unsigned int entrycount = 0;
+ 207          
+ 208          unsigned long fatGetDirEntry(unsigned int entry, unsigned int count)
+ 209          {
+ 210   1              unsigned long idata sector;
+ 211   1              struct direntry *de = 0;        // avoid compiler warning by initializing
+ 212   1              struct winentry *we;
+ 213   1              unsigned int idata hasBuffer;
+ 214   1              unsigned int idata b;
+ 215   1              int i,index;
+ 216   1              char *p;
+ 217   1          DirNameBuffer  = &DirBuffer ;
+ 218   1          LongNameBuffer = &LongBuffer;       
+ 219   1              if(count == 0)
+ 220   1              {
+ 221   2                      entrycount = 0;
+ 222   2                      DirNameBuffer = 0;
+ 223   2              }
+ 224   1              
+ 225   1          // read dir data
+ 226   1              sector = fatClustToSect(FirstDirSector);
+ 227   1              hasBuffer = 0;
+ 228   1              index = 16;     // crank it up
+ 229   1              do 
+ 230   1              {
+ 231   2                      if(index == 16) // time for next sector ?
+ 232   2                      {
+ 233   3                              ataReadSectors( DRIVE0, sector++, 1, SectorBuffer);
+ 234   3                              de = (struct direntry *) SectorBuffer;
+ 235   3                              index = 0;
+ 236   3                  
+ 237   3                      }       
+ 238   2                  // printf("found directory : ");
+ 239   2              // printf("%s\r\n",de->deName);
+ 240   2      
+C51 COMPILER V8.02   FAT                                                                   12/23/2006 00:34:02 PAGE 5   
+
+ 241   2              
+ 242   2                      if(*de->deName != 0xE5)
+ 243   2                      {
+ 244   3              //printf("Direntry :-----------------\n");
+ 245   3                              //
+ 246   3                  // if not a deleted entry
+ 247   3                              if(de->deAttributes == ATTR_LONG_FILENAME)
+ 248   3                              {
+ 249   4                                  printf("Long name entry\r\n",p);
+ 250   4                                      // we have a long name entry
+ 251   4                                      we = (struct winentry *) de;
+ 252   4                                      b = 13 *( (we->weCnt-1) & 0x0f);                                // index into string
+ 253   4                                      p = &LongNameBuffer[b];
+ 254   4                                      for (i=0;i<5;i++)       *p++ = we->wePart1[i*2];        // copy first part                      
+ 255   4                                      for (i=0;i<6;i++)       *p++ = we->wePart2[i*2];        // second part
+ 256   4                                      for (i=0;i<2;i++)       *p++ = we->wePart3[i*2];        // and third part
+ 257   4                                      if (we->weCnt & 0x40) *p = 0;                                   // in case dirnamelength is multiple of 13
+ 258   4                                      if ((we->weCnt & 0x0f) == 1) hasBuffer = 1;             // mark that we have a long entry
+ 259   4                     // 
+ 260   4              #ifdef WE_INFO        
+ 261   4                      printf("weCnt : ");             rprintfu08(we->weCnt);                          rprintfCRLF();
+ 262   4                      printf("weAttributes : ");  rprintfu08(we->weAttributes);                       rprintfCRLF();
+ 263   4                      printf("weReserved1 : ");   rprintfu08(we->weReserved1);                        rprintfCRLF();
+ 264   4                      printf("weChksum : ");         rprintfu08(we->weChksum);                        rprintfCRLF();
+ 265   4                      printf("weReserved2: ");    rprintfu08(IDE_SectorWORD(we->weReserved2));        rprintfCRLF();
+ 266   4              #endif
+ 267   4      
+ 268   4      
+ 269   4      
+ 270   4                  }
+ 271   3                              else
+ 272   3                              {  
+ 273   4                                  //printf("Short name entry\r\n");
+ 274   4                      //printf("\r\n");
+ 275   4                      rprintfStrLen(de->deName,0,8); 
+ 276   4                      printf(".");
+ 277   4                      rprintfStrLen(de->deExtension,0,3);  rprintfCRLF();
+ 278   4                      printf("deAttributes: ");        rprintfu08(de->deAttributes);  rprintfCRLF();
+ 279   4                      printf("deHighClust:"); rprintfu16(IDE_SectorWORD(de->deHighClust));    rprintfCRLF();
+ 280   4                      printf("deStartCluster:"); rprintfu16(IDE_SectorWORD(de->deStartCluster));      rprintfCRLF();
+ 281   4                      printf("StartSector:"); rprintfu32(fatClustToSect(IDE_SectorWORD(de->deStartCluster)));rpr
+             -intfCRLF(); 
+ 282   4                      printf("deFileSize: %ld byte",IDE_SectorDWORD(de->deFileSize )) ;       rprintfCRLF();
+ 283   4                                      // we have a short name entry
+ 284   4                                      // check if this is the end of a multi-part long name entry
+ 285   4                                      if(hasBuffer)
+ 286   4                                      {
+ 287   5                                              // a long entry name has been collected
+ 288   5                                              // is it a directory ?
+ 289   5                                      
+ 290   5                          if(de->deAttributes == ATTR_DIRECTORY)
+ 291   5                                              {
+ 292   6                                                      unsigned long save = FirstDirSector;
+ 293   6                                                      unsigned int save2 = baseentry;
+ 294   6                                                      unsigned long rval;
+ 295   6                                                      
+ 296   6                                                      strcpy(DirNameBuffer,LongNameBuffer);
+ 297   6                                                      strcat(DirNameBuffer,"/");
+ 298   6      
+ 299   6                                                      //printf(LongNameBuffer); printf("/"); //EOL();
+ 300   6                              printf("LongNameBuffer = %s\r\n",LongNameBuffer );
+ 301   6      
+C51 COMPILER V8.02   FAT                                                                   12/23/2006 00:34:02 PAGE 6   
+
+ 302   6                                                      // call recursively
+ 303   6                                                      FirstDirSector = ((unsigned long)de->deHighClust << 16) + de->deStartCluster;
+ 304   6                                                      //rval = fatGetDirEntry(entry,1);
+ 305   6                              rval = 0;
+ 306   6                                                      FirstDirSector = save;
+ 307   6                                                      baseentry = save2;
+ 308   6                                                      if (rval){
+ 309   7                                  printf("rval: "); rprintfu32(rval); rprintfCRLF();
+ 310   7                                                              return rval;
+ 311   7                                  
+ 312   7                              
+ 313   7                              }
+ 314   6                                                      else    
+ 315   6                                                      {
+ 316   7                                                              // reload original sector
+ 317   7                                                              ataReadSectors( DRIVE0, sector-1, 1, SectorBuffer);
+ 318   7                                                              entrycount--;                   // decrement entry counter              
+ 319   7                                                              *DirNameBuffer = 0;
+ 320   7                              }
+ 321   6                          
+ 322   6                                              }
+ 323   5                                              else // normal file entry
+ 324   5                                                      if(entrycount == entry)         
+ 325   5                                                              break;
+ 326   5                          printf("Normal File entry...\r\n");
+ 327   5                                              hasBuffer = 0;  // clear buffer 
+ 328   5                                              entrycount++;   // increment entry counter              
+ 329   5                                      }
+ 330   4                                      // else ignore short_name_only entries 
+ 331   4                              }
+ 332   3                      }
+ 333   2                      de++;
+ 334   2                      index++;
+ 335   2              }       while (*de->deName || index == 16);     // 0 in de->deName[0] if no more entries
+ 336   1      
+ 337   1              if (hasBuffer == 0)             // end of entries
+ 338   1                      return 0;
+ 339   1              
+ 340   1              FileSize = de->deFileSize;
+ 341   1              return (unsigned long) ((unsigned long)de->deHighClust << 16) + de->deStartCluster;
+ 342   1      }
+ 343          
+ 344          // return the size of the last directory entry
+ 345          unsigned long fatGetFilesize(void)
+ 346          {
+ 347   1              return FileSize;
+ 348   1      }
+ 349          
+ 350          
+ 351          // return the long name of the last directory entry
+ 352          char* fatGetFilename(void)
+ 353          {       
+ 354   1              return LongNameBuffer;
+ 355   1      }
+ 356          
+ 357          
+ 358          // return the directory of the last directory entry
+ 359          char* fatGetDirname(void)
+ 360          {       
+ 361   1              return DirNameBuffer;
+ 362   1      }
+ 363          
+C51 COMPILER V8.02   FAT                                                                   12/23/2006 00:34:02 PAGE 7   
+
+ 364          
+ 365          // load a clusterfull of data
+ 366          void fatLoadCluster(unsigned long cluster, unsigned char *buffer)
+ 367          {
+ 368   1              unsigned char idata i;
+ 369   1              // read cluster
+ 370   1              //while ( ataReadSectors( DRIVE0, clust2sect(cluster), SectorsPerCluster, buffer) != 0);
+ 371   1              for(i=0; i<SectorsPerCluster; i++)
+ 372   1              {
+ 373   2      //              ataReadSectors( DRIVE0, clust2sect(cluster)+i, 1, buffer+(i<<9) );
+ 374   2                      // temporary fix for wierd misaligned cluster problem
+ 375   2                      // (only when using FAT16?)
+ 376   2                      ataReadSectors( DRIVE0, fatClustToSect(cluster+8)+i, 1, buffer+(i<<9) );
+ 377   2              }
+ 378   1      }
+ 379          
+ 380          
+ 381          // find next cluster in the FAT chain
+ 382          unsigned long fatNextCluster(unsigned long cluster)
+ 383          {
+ 384   1              unsigned long nextCluster;
+ 385   1              unsigned long fatMask;
+ 386   1              unsigned long fatOffset;
+ 387   1              unsigned long sector;
+ 388   1              unsigned int offset;
+ 389   1      
+ 390   1          unsigned int FAT_CACHE_ADDR;
+ 391   1              FAT_CACHE_ADDR = &sectordata;
+ 392   1              // get fat offset in bytes
+ 393   1              if(Fat32Enabled)
+ 394   1              {
+ 395   2                      // four FAT bytes (32 bits) for every cluster
+ 396   2                      fatOffset = cluster << 2;
+ 397   2                      // set the FAT bit mask
+ 398   2                      fatMask = FAT32_MASK;
+ 399   2              }
+ 400   1              else
+ 401   1              {
+ 402   2                      // two FAT bytes (16 bits) for every cluster
+ 403   2                      fatOffset = cluster << 1;
+ 404   2                      // set the FAT bit mask
+ 405   2                      fatMask = FAT16_MASK;
+ 406   2              }
+ 407   1              
+ 408   1              // calculate the FAT sector that we're interested in
+ 409   1              sector = FirstFATSector + (fatOffset / BytesPerSector);
+ 410   1              // calculate offset of the our entry within that FAT sector
+ 411   1              offset = fatOffset % BytesPerSector;
+ 412   1      
+ 413   1              // if we don't already have this FAT chunk loaded, go get it
+ 414   1              if (sector != FatInCache)
+ 415   1              {
+ 416   2                      // read sector of FAT table
+ 417   2                      while (ataReadSectors( DRIVE0, sector, 1, (unsigned char*)FAT_CACHE_ADDR) != 0);
+ 418   2                      FatInCache = sector;
+ 419   2              }
+ 420   1      
+ 421   1              // read the nextCluster value
+ 422   1              nextCluster = (*((unsigned long*) &((char*)FAT_CACHE_ADDR)[offset])) & fatMask;
+ 423   1      
+ 424   1              // check to see if we're at the end of the chain
+ 425   1              if (nextCluster == (CLUST_EOFE & fatMask))
+C51 COMPILER V8.02   FAT                                                                   12/23/2006 00:34:02 PAGE 8   
+
+ 426   1                      nextCluster = 0;
+ 427   1      
+ 428   1      #ifdef DEBUG_FAT
+ 429   1              printf(">");
+ 430   1              rprintfu32(nextCluster);
+ 431   1              rprintfCRLF();
+ 432   1      #endif
+ 433   1              
+ 434   1              return nextCluster;
+ 435   1      }
+ 436          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   4057    ----
+   CONSTANT SIZE    =    816    ----
+   XDATA SIZE       =    173      82
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =     41      15
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

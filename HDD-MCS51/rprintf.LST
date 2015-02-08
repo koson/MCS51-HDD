@@ -1,0 +1,300 @@
+C51 COMPILER V8.02   RPRINTF                                                               12/23/2006 00:34:02 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE RPRINTF
+OBJECT MODULE PLACED IN rprintf.OBJ
+COMPILER INVOKED BY: C:\Program Files\Keil\C51\BIN\C51.EXE rprintf.c LARGE OMF2 DEBUG
+
+line level    source
+
+   1          /*! \file rprintf.c \brief printf routine and associated routines. */
+   2          //*****************************************************************************
+   3          //
+   4          // File Name    : 'rprintf.c'
+   5          // Title                : printf routine and associated routines
+   6          // Author               : Pascal Stang - Copyright (C) 2000-2002
+   7          // Created              : 2000.12.26
+   8          // Revised              : 2003.5.1
+   9          // Version              : 1.0
+  10          // Target MCU   : Atmel AVR series and other targets
+  11          // Editor Tabs  : 4
+  12          //
+  13          // NOTE: This code is currently below version 1.0, and therefore is considered
+  14          // to be lacking in some functionality or documentation, or may not be fully
+  15          // tested.  Nonetheless, you can expect most functions to work.
+  16          //
+  17          // This code is distributed under the GNU Public License
+  18          //              which can be found at http://www.gnu.org/licenses/gpl.txt
+  19          //
+  20          //*****************************************************************************
+  21          
+  22          //#include <avr/pgmspace.h>
+  23          //#include <string-avr.h>
+  24          //#include <stdlib.h>
+  25          #include <stdarg.h>
+  26          //#include "global.h"
+  27          #include "rprintf.h"
+  28          
+  29          
+  30          #ifndef TRUE
+  31                  #define TRUE    -1
+  32                  #define FALSE   0
+  33          #endif
+  34          
+  35          #define INF     32766   // maximum field size to print
+  36          //#define READMEMBYTE(a,char_ptr)       ((a)?(pgm_read_byte(char_ptr)):(*char_ptr))
+  37          
+  38          #ifdef RPRINTF_COMPLEX
+                      static unsigned char buf[128];
+              #endif
+  41          
+  42          // use this to store hex conversion in RAM
+  43          //static char HexChars[] = "0123456789ABCDEF";
+  44          // use this to store hex conversion in program memory
+  45          //static prog_char HexChars[] = "0123456789ABCDEF";
+  46          static char code HexChars[] = "0123456789ABCDEF";
+  47          
+  48          // function pointer to single character output routine
+  49          //static void (*rputchar)(unsigned char c);
+  50          
+  51          // *** rprintf initialization ***
+  52          // you must call this function once and supply the character output
+  53          // routine before using other functions in this library
+  54          //void rprintfInit(void (*putchar_func)(unsigned char c))
+  55          //{
+C51 COMPILER V8.02   RPRINTF                                                               12/23/2006 00:34:02 PAGE 2   
+
+  56          //      rputchar = putchar_func;
+  57          //}
+  58          
+  59          // *** rprintfChar ***
+  60          // send a character/byte to the current output device
+  61          /*void rprintfChar(unsigned char c)
+  62          {
+  63                  // send character
+  64                  putchar(c);
+  65          }
+  66          */
+  67          // *** rprintfStr ***
+  68          // prints a null-terminated string stored in RAM
+  69          void rprintfStr(char str[])
+  70          {
+  71   1              // send a string stored in RAM
+  72   1              // check to make sure we have a good pointer
+  73   1              if (!str) return;
+  74   1      
+  75   1              // print the string until a null-terminator
+  76   1              while (*str)
+  77   1                      putchar(*(str++));
+  78   1      }
+  79          
+  80          // *** rprintfStrLen ***
+  81          // prints a section of a string stored in RAM
+  82          // begins printing at position indicated by <start>
+  83          // prints number of characters indicated by <len>
+  84          void rprintfStrLen(char str[], unsigned int start, unsigned int len)
+  85          {
+  86   1              register int i=0;
+  87   1      
+  88   1              // check to make sure we have a good pointer
+  89   1              if (!str) return;
+  90   1              // spin through characters up to requested start
+  91   1              // keep going as long as there's no null
+  92   1              while((i++<start) && (*str++));
+  93   1      //      for(i=0; i<start; i++)
+  94   1      //      {
+  95   1      //              // keep steping through string as long as there's no null
+  96   1      //              if(*str) str++;
+  97   1      //      }
+  98   1      
+  99   1              // then print exactly len characters
+ 100   1              for(i=0; i<len; i++)
+ 101   1              {
+ 102   2                      // print data out of the string as long as we haven't reached a null yet
+ 103   2                      // at the null, start printing spaces
+ 104   2                      if(*str)
+ 105   2                              putchar( *str++);
+ 106   2                      else
+ 107   2                              putchar(' ');
+ 108   2              }
+ 109   1      
+ 110   1      }
+ 111          
+ 112          // *** rprintfProgStr ***
+ 113          // prints a null-terminated string stored in program ROM
+ 114          void rprintfProgStr(unsigned char *str)
+ 115          {
+ 116   1              // print a string stored in program memory
+ 117   1              unsigned char c;
+C51 COMPILER V8.02   RPRINTF                                                               12/23/2006 00:34:02 PAGE 3   
+
+ 118   1      
+ 119   1              // check to make sure we have a good pointer
+ 120   1              if (!str) return;
+ 121   1              
+ 122   1              // print the string until the null-terminator
+ 123   1              while(c = *str)
+ 124   1              {       str++;
+ 125   2                      putchar((unsigned char)c);
+ 126   2              }
+ 127   1      }
+ 128          
+ 129          // *** rprintfCRLF ***
+ 130          // prints carriage return and line feed
+ 131          void rprintfCRLF(void)
+ 132          {
+ 133   1              // print CR/LF
+ 134   1              putchar('\r');
+ 135   1              putchar('\n');
+ 136   1      }
+ 137          
+ 138          // *** rprintfu04 ***
+ 139          // prints an unsigned 4-bit number in hex (1 digit)
+ 140          void rprintfu04(unsigned char dat)
+ 141          {
+ 142   1              // print 4-bit hex value
+ 143   1      //      char Character = data&0x0f;
+ 144   1      //      if (Character>9)
+ 145   1      //              Character+='A'-10;
+ 146   1      //      else
+ 147   1      //              Character+='0';
+ 148   1              putchar( HexChars[dat&0x0f] );
+ 149   1      }
+ 150          
+ 151          // *** rprintfu08 ***
+ 152          // prints an unsigned 8-bit number in hex (2 digits)
+ 153          void rprintfu08(unsigned char dat)
+ 154          {
+ 155   1              // print 8-bit hex value
+ 156   1              rprintfu04(dat>>4);
+ 157   1              rprintfu04(dat);
+ 158   1      }
+ 159          
+ 160          // *** rprintfu16 ***
+ 161          // prints an unsigned 16-bit number in hex (4 digits)
+ 162          void rprintfu16(unsigned short dat)
+ 163          {
+ 164   1              // print 16-bit hex value
+ 165   1              rprintfu08(dat>>8);
+ 166   1              rprintfu08(dat);
+ 167   1      }
+ 168          
+ 169          // *** rprintfu32 ***
+ 170          // prints an unsigned 32-bit number in hex (8 digits)
+ 171          void rprintfu32(unsigned long dat)
+ 172          {
+ 173   1              // print 32-bit hex value
+ 174   1              rprintfu16(dat>>16);
+ 175   1              rprintfu16(dat);
+ 176   1      }
+ 177          
+ 178          // *** rprintfNum ***
+ 179          // special printf for numbers only
+C51 COMPILER V8.02   RPRINTF                                                               12/23/2006 00:34:02 PAGE 4   
+
+ 180          // see formatting information below
+ 181          //      Print the number "n" in the given "base"
+ 182          //      using exactly "numDigits"
+ 183          //      print +/- if signed flag "isSigned" is TRUE
+ 184          //      use the character specified in "padchar" to pad extra characters
+ 185          //
+ 186          //      Examples:
+ 187          //      uartPrintfNum(10, 6,  TRUE, ' ',   1234);  -->  " +1234"
+ 188          //      uartPrintfNum(10, 6, FALSE, '0',   1234);  -->  "001234"
+ 189          //      uartPrintfNum(16, 6, FALSE, '.', 0x5AA5);  -->  "..5AA5"
+ 190          void rprintfNum(char base, char numDigits, char isSigned, char padchar, long n)
+ 191          {
+ 192   1              // define a global HexChars or use line below
+ 193   1              //static char HexChars[16] = "0123456789ABCDEF";
+ 194   1              char *p, buf[32];
+ 195   1              unsigned long x;
+ 196   1              unsigned char count;
+ 197   1      
+ 198   1              // prepare negative number
+ 199   1              if( isSigned && (n < 0) )
+ 200   1              {
+ 201   2                      x = -n;
+ 202   2              }
+ 203   1              else
+ 204   1              {
+ 205   2                      x = n;
+ 206   2              }
+ 207   1      
+ 208   1              // setup little string buffer
+ 209   1              count = (numDigits-1)-(isSigned?1:0);
+ 210   1              p = buf + sizeof (buf);
+ 211   1              *--p = '\0';
+ 212   1              
+ 213   1              // force calculation of first digit
+ 214   1              // (to prevent zero from not printing at all!!!)
+ 215   1              *--p = HexChars[x%base]; x /= base;
+ 216   1              // calculate remaining digits
+ 217   1              while(count--)
+ 218   1              {
+ 219   2                      if(x != 0)
+ 220   2                      {
+ 221   3                              // calculate next digit
+ 222   3                              *--p = HexChars[x%base]; x /= base;
+ 223   3                      }
+ 224   2                      else
+ 225   2                      {
+ 226   3                              // no more digits left, pad out to desired length
+ 227   3                              *--p = padchar;
+ 228   3                      }
+ 229   2              }
+ 230   1      
+ 231   1              // apply signed notation if requested
+ 232   1              if( isSigned )
+ 233   1              {
+ 234   2                      if(n < 0)
+ 235   2                      {
+ 236   3                              *--p = '-';
+ 237   3                      }
+ 238   2                      else if(n > 0)
+ 239   2                      {
+ 240   3                              *--p = '+';
+ 241   3                      }
+C51 COMPILER V8.02   RPRINTF                                                               12/23/2006 00:34:02 PAGE 5   
+
+ 242   2                      else
+ 243   2                      {
+ 244   3                              *--p = ' ';
+ 245   3                      }
+ 246   2              }
+ 247   1      
+ 248   1              // print the string right-justified
+ 249   1              count = numDigits;
+ 250   1              while(count--)
+ 251   1              {
+ 252   2                      putchar(*p++);
+ 253   2              }
+ 254   1      }
+ 255          
+ 256          unsigned char Isdigit(char c)
+ 257          {
+ 258   1              if((c >= 0x30) && (c <= 0x39))
+ 259   1                      return TRUE;
+ 260   1              else
+ 261   1                      return FALSE;
+ 262   1      }
+ 263          
+ 264          
+ 265          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    852    ----
+   CONSTANT SIZE    =     17    ----
+   XDATA SIZE       =   ----      71
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

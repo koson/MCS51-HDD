@@ -1,0 +1,646 @@
+C51 COMPILER V8.02   IDE_51_MAIN_REV6                                                      12/23/2006 00:34:01 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE IDE_51_MAIN_REV6
+OBJECT MODULE PLACED IN IDE_51_main_rev6.OBJ
+COMPILER INVOKED BY: C:\Program Files\Keil\C51\BIN\C51.EXE IDE_51_main_rev6.c LARGE OMF2 DEBUG
+
+line level    source
+
+   1          /* ==============================================
+   2          
+   3          Project : IDE-51
+   4          Purpose : Interface IDE Harddisk with AT89C51AC2
+   5          Date    : Revision 3 2006.04.27
+   6                          : Revision 5 2006.05.04 
+   7          Author  : ktkoson@kmitl.ac.th
+   8          
+   9          =================================================*/
+  10          
+  11          #include <REG51AC2.h>
+  12          #include <stdio.h>
+  13          #include <stdlib.h>
+  14          #include "rprintf.h"
+  15          #include "compdef.h"
+  16          #include "ide_51.h"
+  17          #define DEBUG_ATA 1
+  18          
+  19          
+  20          
+  21          main()
+  22          {
+  23   1              unsigned int i = 0;
+  24   1              long reg,dat;
+  25   1              char *p;
+  26   1              char s[] = "     ";
+  27   1      
+  28   1              AUXR = 0x0C;    //' T89C51AC2 CONFIG SELECT IRAM = 1024 BYTE.
+  29   1              Init_serial();  //' SERIAL SETTING.
+  30   1              //IT0 = 1;              //' Falling edge interrupt 0
+  31   1              //EX0 = 1;              //' Enable INT0 interrupt
+  32   1              EA = 1;         //' ENABLE INTERRUPT.
+  33   1          ES = 1;         //' ENABLE SERIAL INTERRUPT.
+  34   1      
+  35   1              P1 = 0xf8;
+  36   1              //P2 = 0;
+  37   1      
+  38   1              Bytes_write = 0;
+  39   1              printf(":RZ00\n\r"); // send hw reset to PC
+  40   1              printf("=======================\n\r");
+  41   1              printf("8051-IDE system...\n\r");
+  42   1              printf("Version 6.0\n\r");
+  43   1              printf("11 MAy 2006 @19:30\n\r");
+  44   1              printf("ktkoson@kmitl.ac.th\n\r");
+  45   1              printf("all right reserved.\n\r");
+  46   1              printf("=======================\n\r");
+  47   1              //printf("\n\r");
+  48   1      
+  49   1      
+  50   1              printf("Hard disk diag...\n\r");
+  51   1              printf("\n\r");
+  52   1      
+  53   1              RESETn = 0;
+  54   1              delay(100);
+  55   1              RESETn = 1;
+C51 COMPILER V8.02   IDE_51_MAIN_REV6                                                      12/23/2006 00:34:01 PAGE 2   
+
+  56   1              delay(100);
+  57   1              wait_ATA_ready();
+  58   1               
+  59   1              ataDriveInit();
+  60   1              fatInit(0);
+  61   1          fatGetDirEntry(0,2) ;
+  62   1          //reportbuffers();  
+  63   1              rep_all_reg ();
+  64   1              
+  65   1              /*
+  66   1      
+  67   1      
+  68   1         printf("WRITE_ATA_REG(COMMAND_REG, 0xE1);...\r\n");
+  69   1      
+  70   1         WRITE_ATA_REG(COMMAND_REG, 0xE1);
+  71   1         wait_ATA_ready();    
+  72   1         
+  73   1         rep_all_reg ();
+  74   1      */
+  75   1         //WRITE_ATA_REG(COMMAND_REG, 0xEC);
+  76   1      
+  77   1         wait_ATA_ready();    
+  78   1         printf("hello\n\r");
+  79   1      
+  80   1          while(1){
+  81   2                      if(Bytes_write)
+  82   2                      {
+  83   3                              //printf("Bytes_write %bd auxdata = [%s]\n\r", Bytes_write,Aux_Data);
+  84   3                              if(Aux_Data[0] != ':')
+  85   3                              {
+  86   4                                      printf(":err\n\r");
+  87   4                                      Bytes_write = 0;
+  88   4                                      Aux_Data[0] = 0;
+  89   4                                      Aux_Data[1] = 0;
+  90   4                                      continue;
+  91   4                              } 
+  92   3                              if(Aux_Data[Bytes_write-1] == ':')
+  93   3                              { 
+  94   4                                      // printf("Start of code\n");
+  95   4                                      continue;
+  96   4                              }
+  97   3                              if(Aux_Data[Bytes_write-1] == 0x0d) 
+  98   3                              {
+  99   4                                      printf("Received %s\n\r",Aux_Data);
+ 100   4                                      Bytes_write=0;
+ 101   4                                      switch(Aux_Data[1])
+ 102   4                                      {
+ 103   5                                              case  'w' :
+ 104   5                                              switch (Aux_Data[2])
+ 105   5                                              {
+ 106   6                                                      case 'b': 
+ 107   6                                                              printf("Write Buffer\n\r");
+ 108   6                                                              break;
+ 109   6                                                      case 'r':
+ 110   6                                                              printf("Write Register\n\r");
+ 111   6                                                          s[0] = Aux_Data[3];
+ 112   6                                                          s[1] = Aux_Data[4];
+ 113   6                                                              reg = strtol (s, &p, 16);
+ 114   6                                                          s[0] = Aux_Data[5];
+ 115   6                                                          s[1] = Aux_Data[6];
+ 116   6                                                              dat = strtol (s, &p, 16);
+ 117   6                                                              AtaWriteRegister(reg, dat);
+C51 COMPILER V8.02   IDE_51_MAIN_REV6                                                      12/23/2006 00:34:01 PAGE 3   
+
+ 118   6                                                              break;   
+ 119   6                                                      case 's':
+ 120   6                                                              printf("Write Sector\n");
+ 121   6      
+ 122   6                                                              break;   
+ 123   6                                                      case 'c':
+ 124   6                                                          s[0] = Aux_Data[3];
+ 125   6                                                          s[1] = Aux_Data[4];
+ 126   6                                                              reg = strtol (s, &p, 16);           
+ 127   6                                                              AtaWriteRegister(COMMAND_REG, reg);
+ 128   6                                                              break;   
+ 129   6      
+ 130   6                                                      default:
+ 131   6                                                              printf("Command not implemented @w[2]\n\r");
+ 132   6                                                      break;
+ 133   6                                              }
+ 134   5                                              break;
+ 135   5      
+ 136   5                                              case 'r':
+ 137   5                                              switch(Aux_Data[2])
+ 138   5                                              {
+ 139   6                                                      case 'b': 
+ 140   6                                                              printf("Read Buffer\n");
+ 141   6                                                              ReadHDDBuffer();                                                        
+ 142   6                                                              break;                          
+ 143   6                                                      case 'p': 
+ 144   6                                                              printf("Report HDD Buffer\n");
+ 145   6                                                              reportbuffers();                                                        
+ 146   6                                                              break;                          
+ 147   6                                                      case 'r' :
+ 148   6                                                              rep_all_reg ();
+ 149   6                                                              break;                          
+ 150   6                                                      case 's' :
+ 151   6                                                              printf("Read Sector\n");
+ 152   6                                                              break;  
+ 153   6                                                      case 'e' :
+ 154   6                                                              printf(":RER%bX\n", AtaReadRegister(ERROR_REG));
+ 155   6                                                              break;  
+ 156   6                                                      case 't' :
+ 157   6                                                              printf(":RTR%bX\n", AtaReadRegister(PRISTATUS_REG));
+ 158   6                                                              break;  
+ 159   6                                                                                      
+ 160   6                                                      default:
+ 161   6                                                              printf("Command not implemented @r[2]\n");
+ 162   6                                                      break;
+ 163   6                                              } 
+ 164   5                                              break;
+ 165   5                                              default:
+ 166   5                                              printf("Command not implemented @[1]\n");
+ 167   5                                              break;
+ 168   5                                      }
+ 169   4                              }
+ 170   3                      }       
+ 171   2              }
+ 172   1      }
+ 173          
+ 174          unsigned char ataReadSectorsCHS( unsigned char Drive, 
+ 175                                                                           unsigned char Head, 
+ 176                                                                           unsigned int Track,
+ 177                                                                           unsigned char Sector,
+ 178                                                                           unsigned int numsectors,
+ 179                                                                           unsigned char *Buffer)
+C51 COMPILER V8.02   IDE_51_MAIN_REV6                                                      12/23/2006 00:34:01 PAGE 4   
+
+ 180          {
+ 181   1              unsigned char temp;
+ 182   1      
+ 183   1              // Wait for drive to be ready
+ 184   1              temp = ataStatusWait(ATA_SR_BSY, ATA_SR_BSY);
+ 185   1      /*      printf(":RSC%02bX\n", READ_ATA_REG(SECTOR_COUNT));
+ 186   1              printf(":RSN%02bX\n", READ_ATA_REG(SECTOR_NUMBER));
+ 187   1              printf(":RCL%02bX\n", READ_ATA_REG(CYLINDER_LOW));
+ 188   1              printf(":RCH%02bX\n", READ_ATA_REG(CYLINDER_HI));
+ 189   1              printf(":RSD%02bX\n", READ_ATA_REG(DRIVE_HEAD));
+ 190   1              printf(":RTR%02bX\n", READ_ATA_REG(PRISTATUS_REG));
+ 191   1              printf(":RER%02bX\n", READ_ATA_REG(ERROR_REG));
+ 192   1      */
+ 193   1              // Prepare parameters...
+ 194   1              ataWriteByte(DRIVE_HEAD, 0xA0+(Drive ? 0x10:00)+Head); // CHS mode/Drive/Head
+ 195   1              ataWriteByte(CYLINDER_HI, Track>>8);            // MSB of track
+ 196   1              ataWriteByte(CYLINDER_LOW, Track);              // LSB of track
+ 197   1              ataWriteByte(SECTOR_NUMBER, Sector);            // sector
+ 198   1              ataWriteByte(SECTOR_COUNT, numsectors); // # of sectors
+ 199   1      
+ 200   1              // Issue read sector command...
+ 201   1              ataWriteByte(COMMAND_REG, 0x21);
+ 202   1      
+ 203   1              // Wait for drive to be ready
+ 204   1              temp = ataStatusWait(ATA_SR_BSY, ATA_SR_BSY);
+ 205   1      
+ 206   1              if (temp & ATA_SR_ERR)
+ 207   1              {
+ 208   2                      printf("RD ERR\r\n");
+ 209   2                      return 1;
+ 210   2              }
+ 211   1      
+ 212   1              // Wait for drive to request data transfer
+ 213   1              ataStatusWait(ATA_SR_DRQ, 0);
+ 214   1      
+ 215   1              // read data from drive
+ 216   1              // ataReadDataBuffer(Buffer, 512*numsectors);
+ 217   1              ataReadDataBuffer(Buffer, numsectors);
+ 218   1      
+ 219   1              // Return the error bit from the status register...
+ 220   1              temp = AtaReadRegister(COMMAND_REG);    // read status register
+ 221   1      
+ 222   1              return (temp & ATA_SR_ERR) ? 1:0;
+ 223   1      }
+ 224          
+ 225          unsigned char ataReadSectors(   unsigned char Drive, 
+ 226                                                                                          unsigned long lba,
+ 227                                                                                          unsigned int numsectors,
+ 228                                          unsigned char *Buffer)
+ 229          {
+ 230   1              unsigned int cyl, head, sect;
+ 231   1              unsigned char temp;
+ 232   1              // check if drive supports native LBA mode
+ 233   1              if(ataDriveInfo.LBAsupport)
+ 234   1              {
+ 235   2                      // drive supports using native LBA
+ 236   2                      temp = ataReadSectorsLBA(Drive, lba, numsectors, Buffer);
+ 237   2                      #ifdef DEBUG_ATA
+ 238   2                              //printf("Info : drive supports using native LBA\n");
+ 239   2                              printf("Drive support LBA\tDrive : ");  rprintfu08(Drive);       
+ 240   2                              printf(" LBA : ");      rprintfu32(lba);         
+ 241   2                              printf(" NumSectors     : ");   rprintfu16(numsectors);         rprintfCRLF();
+C51 COMPILER V8.02   IDE_51_MAIN_REV6                                                      12/23/2006 00:34:01 PAGE 5   
+
+ 242   2                      #endif
+ 243   2              }
+ 244   1              else
+ 245   1              {
+ 246   2                      // drive required CHS access
+ 247   2                      //printf("Info : drive required CHS access\n");
+ 248   2      
+ 249   2                      //#ifdef DEBUG_ATA
+ 250   2                              // do this defore destroying lba
+ 251   2                      //printf("ATA LBA for CHS read: ");
+ 252   2                      //      printf("LBA="); rprintfu32(lba); printf (" ");
+ 253   2                      //#endif
+ 254   2      
+ 255   2                      // convert LBA to pseudo CHS
+ 256   2                      // remember to offset the sector count by one
+ 257   2                      sect = (u08) (lba % ataDriveInfo.sectors)+1;
+ 258   2                      lba = lba / ataDriveInfo.sectors;
+ 259   2                      head = (u08) (lba % ataDriveInfo.heads);
+ 260   2                      lba = lba / ataDriveInfo.heads;
+ 261   2                      cyl = (u16) lba;
+ 262   2      
+ 263   2                      #ifdef DEBUG_ATA
+ 264   2                              printf("C:H:S=");
+ 265   2                              rprintfu16(cyl); printf(":");
+ 266   2                              rprintfu08(head); printf(":");
+ 267   2                              rprintfu08(sect); rprintfCRLF();
+ 268   2                      #endif
+ 269   2      
+ 270   2                      temp = ataReadSectorsCHS( Drive, head, cyl, sect, numsectors, Buffer );
+ 271   2              }
+ 272   1      
+ 273   1          reportbuffers();
+ 274   1              if(temp)
+ 275   1                      ataDiskErr();
+ 276   1              return temp;
+ 277   1      }
+ 278          
+ 279          unsigned char ataReadSectorsLBA(        unsigned char Drive, 
+ 280                                                                                                  unsigned long lba,
+ 281                                                                                                  unsigned int numsectors,
+ 282                                                  unsigned char *Buffer)
+ 283          {
+ 284   1              unsigned  int idata cyl, head, sect;
+ 285   1              unsigned char idata temp;
+ 286   1      
+ 287   1      #ifdef DEBUG_ATA
+ 288   1              printf("ATA LBA read ");
+ 289   1              rprintfu32(lba); printf(" ");
+ 290   1              rprintfu16(numsectors); printf(" ");
+ 291   1              rprintfu16((unsigned int)Buffer); 
+ 292   1              rprintfCRLF();
+ 293   1      #endif
+ 294   1      
+ 295   1              sect = (int) ( lba & 0x000000ffL );
+ 296   1              lba = lba >> 8;
+ 297   1              cyl = (int) ( lba & 0x0000ffff );
+ 298   1              lba = lba >> 16;
+ 299   1              head = ( (int) ( lba & 0x0fL ) ) | ATA_HEAD_USE_LBA;
+ 300   1      
+ 301   1              temp = ataReadSectorsCHS( Drive, head, cyl, sect, numsectors, Buffer );
+ 302   1      
+ 303   1              if(temp)
+C51 COMPILER V8.02   IDE_51_MAIN_REV6                                                      12/23/2006 00:34:01 PAGE 6   
+
+ 304   1                      ataDiskErr();
+ 305   1              return temp;
+ 306   1      }
+ 307          
+ 308          void ataReadDataBuffer(u08 *Buffer, u16 numSector)
+ 309          {
+ 310   1              unsigned int idata i;
+ 311   1      
+ 312   1              //sbi(MCUCR, SRW);                      // enable RAM waitstate
+ 313   1          Buffer = &sectordata;
+ 314   1              // read data from drive
+ 315   1              for (i=0; i<numSector; i++)
+ 316   1              {
+ 317   2                      ReadHDDBuffer();
+ 318   2              }
+ 319   1              //cbi(MCUCR, SRW);                      // disable RAM waitstate
+ 320   1              
+ 321   1      }
+ 322          
+ 323          void ataDiskErr(void)
+ 324          {
+ 325   1              unsigned char idata  b;
+ 326   1      
+ 327   1              b = AtaReadRegister(ERROR_REG); 
+ 328   1              printf("ATA Error: "); 
+ 329   1              rprintfu08(b); 
+ 330   1              rprintfCRLF();
+ 331   1      }
+ 332          
+ 333          
+ 334          unsigned char ataReadByte(unsigned char  reg)
+ 335          {
+ 336   1              return AtaReadRegister(reg);
+ 337   1      }
+ 338          
+ 339          void ataWriteByte(unsigned char  reg, unsigned char  dat)
+ 340          {
+ 341   1               AtaWriteRegister(reg,dat);
+ 342   1      }                         
+ 343          
+ 344          unsigned char  ataStatusWait(unsigned char  mask, unsigned char waitStatus)
+ 345          {
+ 346   1              register unsigned char  status;
+ 347   1      
+ 348   1              delay(100);
+ 349   1      
+ 350   1              // wait for desired status
+ 351   1              while( ((status = ataReadByte(COMMAND_REG)) & mask) == waitStatus );
+ 352   1      
+ 353   1              return status;
+ 354   1      }
+ 355          
+ 356          void ataDriveInit(void)
+ 357          {
+ 358   1              unsigned char  i;
+ 359   1              unsigned char* buffer = &sectordata; //(0x1E00)
+ 360   1      
+ 361   1              // read drive identity
+ 362   1              printf("\r\nScanning IDE interface...\r\n");
+ 363   1              // Wait for drive to be ready
+ 364   1              ataStatusWait(ATA_SR_BSY, ATA_SR_BSY);
+ 365   1              // issue identify command
+C51 COMPILER V8.02   IDE_51_MAIN_REV6                                                      12/23/2006 00:34:01 PAGE 7   
+
+ 366   1              ataWriteByte(COMMAND_REG, 0xEC);
+ 367   1              // wait for drive to request data transfer
+ 368   1              ataStatusWait(ATA_SR_DRQ, ATA_SR_DRQ);
+ 369   1              delay(200);
+ 370   1              // read in the data
+ 371   1              ReadHDDBuffer();
+ 372   1              //ataReadDataBuffer(buffer, 512);
+ 373   1      
+ 374   1              // set local drive info parameters
+ 375   1              ataDriveInfo.cylinders =        (unsigned int)(sectordata[ATA_IDENT_CYLINDERS*2+1]*256 + sectordata[ATA_IDENT_CY
+             -LINDERS*2]);
+ 376   1              ataDriveInfo.heads =             sectordata[ATA_IDENT_HEADS*2];
+ 377   1              ataDriveInfo.sectors =           sectordata[ATA_IDENT_SECTORS*2];
+ 378   1              ataDriveInfo.LBAsupport =        sectordata[ATA_IDENT_FIELDVALID*2];
+ 379   1              ataDriveInfo.sizeinsectors = (unsigned long) sectordata[123];
+ 380   1              ataDriveInfo.sizeinsectors = (unsigned long) ataDriveInfo.sizeinsectors *256 + sectordata[122];
+ 381   1              ataDriveInfo.sizeinsectors = (unsigned long) ataDriveInfo.sizeinsectors *256 + sectordata[121];
+ 382   1              ataDriveInfo.sizeinsectors = (unsigned long) ataDriveInfo.sizeinsectors *256 + sectordata[120];
+ 383   1      
+ 384   1          
+ 385   1              printf("ataDriveInfo.cylinders  = %d [%XH]\n\r",ataDriveInfo.cylinders ,ataDriveInfo.cylinders   );
+ 386   1              printf("ataDriveInfo.heads = %bd [%bX]\n\r",ataDriveInfo.heads ,ataDriveInfo.heads );
+ 387   1              printf("ataDriveInfo.sectors  = %bd [%bX]\n\r",ataDriveInfo.sectors ,ataDriveInfo.sectors );
+ 388   1              printf("ataDriveInfo.LBAsupport  = %bd [%bX]\n\r",ataDriveInfo.LBAsupport ,ataDriveInfo.LBAsupport);
+ 389   1              printf("ataDriveInfo.sizeinsectors  = %ld [%lX]\n\r",ataDriveInfo.sizeinsectors ,ataDriveInfo.sizeinsect
+             -ors);
+ 390   1      
+ 391   1      
+ 392   1              // copy model string
+ 393   1      
+ 394   1              for(i=0; i<40; i+=2)
+ 395   1              {
+ 396   2                      // correct for byte order
+ 397   2                      ataDriveInfo.model[i  ] = buffer[(ATA_IDENT_MODEL*2) + i + 1];
+ 398   2                      ataDriveInfo.model[i+1] = buffer[(ATA_IDENT_MODEL*2) + i    ];
+ 399   2              }
+ 400   1              // terminate string
+ 401   1              ataDriveInfo.model[40] = 0;
+ 402   1      
+ 403   1              // process and print info
+ 404   1              if(ataDriveInfo.LBAsupport)
+ 405   1              {
+ 406   2                      // LBA support
+ 407   2                      printf("Drive 0: %ldMB ",  ataDriveInfo.sizeinsectors/(1000000/512) );
+ 408   2                      //printf("Drive 0: %d Sectors ", ataDriveInfo.sizeinsectors/512 );
+ 409   2                      printf("LBA mode -- MODEL: ");
+ 410   2              }
+ 411   1              else
+ 412   1              {
+ 413   2                      // CHS, no LBA support
+ 414   2                      // calculate drive size
+ 415   2                      ataDriveInfo.sizeinsectors = (unsigned long) ataDriveInfo.cylinders*
+ 416   2                                                                                                      ataDriveInfo.heads*ataDriveInfo.sectors;
+ 417   2                      printf("Drive 0: %dMB ", ataDriveInfo.sizeinsectors/(1000000/512) );
+ 418   2                      printf("CHS mode C=%d H=%d S=%d -- MODEL: ", ataDriveInfo.cylinders, ataDriveInfo.heads, ataDriveInfo.se
+             -ctors );
+ 419   2              }
+ 420   1              // print model information      
+ 421   1              rprintfStr(ataDriveInfo.model); printf("\n\r");
+ 422   1      
+ 423   1              //reportbuffers();
+ 424   1              // initialize local disk parameters
+C51 COMPILER V8.02   IDE_51_MAIN_REV6                                                      12/23/2006 00:34:01 PAGE 8   
+
+ 425   1              //ataDriveInfo.cylinders = ATA_DISKPARM_CLYS;
+ 426   1              //ataDriveInfo.heads = ATA_DISKPARM_HEADS;
+ 427   1              //ataDriveInfo.sectors = ATA_DISKPARM_SECTORS;
+ 428   1      
+ 429   1      }
+ 430          
+ 431          void reportbuffers()
+ 432          
+ 433          {
+ 434   1              int s,t;
+ 435   1              unsigned char a,b;
+ 436   1              printf("ADDR ");
+ 437   1              for(t=0;t <= 15; t++ )
+ 438   1              {
+ 439   2                      printf("%02bX ",(unsigned char ) t);
+ 440   2              }               
+ 441   1              printf("\r\n");
+ 442   1              for(s=0;s <= 31; s++ )
+ 443   1              {
+ 444   2                      printf("%04X ",s*16);
+ 445   2                      for(t=0; t < 8; t++ )
+ 446   2                      {
+ 447   3                              printf("%02bX %02bX ",sectordata[(8*s+t)*2], sectordata[(8*s+t)*2+1]);
+ 448   3                      }               
+ 449   2                      printf("\t");
+ 450   2                      for(t=0;t < 8; t++ )
+ 451   2                      {
+ 452   3                          a = sectordata[(8*s+t)*2+1] ;                   
+ 453   3                              if((a > 'z') || (a < ' ')) a = '.';
+ 454   3                              b = sectordata[(8*s+t)*2];
+ 455   3                          if((b > 'z') || (b < ' ')) b = '.';
+ 456   3                              printf("%c%c", b, a);
+ 457   3                      }               
+ 458   2                      printf("\n\r");
+ 459   2                      delay(10);
+ 460   2              }
+ 461   1      }
+ 462          
+ 463          
+ 464          void ReadHDDBuffer(void)
+ 465          {
+ 466   1              int s;
+ 467   1              //unsigned char a,b;
+ 468   1              while( (READ_ATA_REG(ALTSTATUS_REG) & 0x80)) ;
+ 469   1              READ_ATA_REG(PRISTATUS_REG);
+ 470   1              for(s=0;s <= 256; s++ )
+ 471   1              {
+ 472   2                      while(!(READ_ATA_REG(PRISTATUS_REG)&& 0x80)) ;
+ 473   2                      P0 = 0xff;
+ 474   2                      P1 = DATA_REG;
+ 475   2                      RDn = 0;
+ 476   2                      sectordata[s*2] = P0;
+ 477   2                      sectordata[(s*2)+1] = P2;
+ 478   2                      RDn = 1;                
+ 479   2              }
+ 480   1              //reportbuffers();      
+ 481   1      
+ 482   1      }
+ 483          
+ 484          
+ 485          void int0_isr (void) interrupt 0
+ 486          {
+C51 COMPILER V8.02   IDE_51_MAIN_REV6                                                      12/23/2006 00:34:01 PAGE 9   
+
+ 487   1      //      sectordata[word_counter++] = AtaReadRegister( DATA_REG );
+ 488   1      //      sectordata[word_counter++] = P2;
+ 489   1      }
+ 490          
+ 491          /*===================================================================
+ 492             ATA support function
+ 493          =====================================================================*/
+ 494          unsigned char AtaReadRegister(unsigned char p_ucRegister)
+ 495          {
+ 496   1              unsigned char ata_reg;
+ 497   1              ata_reg = READ_ATA_REG((unsigned char)p_ucRegister);
+ 498   1              return ata_reg; 
+ 499   1      }
+ 500          
+ 501          void AtaWriteRegister(unsigned char p_ucRegister, unsigned char p_ucData)
+ 502          {
+ 503   1              while( (READ_ATA_REG(PRISTATUS_REG) & 0x80)) ;
+ 504   1              P0 = p_ucData ;
+ 505   1              P1 = p_ucRegister;
+ 506   1              WRn = 0;
+ 507   1              delay(50);
+ 508   1              WRn = 1;
+ 509   1      
+ 510   1      }
+ 511          void wait_ATA_ready()
+ 512          {
+ 513   1              while( (READ_ATA_REG(PRISTATUS_REG) & 0x80)) ;    // wait for not busy
+ 514   1              while(!(READ_ATA_REG(PRISTATUS_REG) & 0x40));     // wait for ready
+ 515   1      }
+ 516          
+ 517          void rep_all_reg ()
+ 518          {
+ 519   1              printf("\n\r");
+ 520   1              printf(":RSC%02bX\n\r", READ_ATA_REG(SECTOR_COUNT));
+ 521   1              printf(":RSN%02bX\n\r", READ_ATA_REG(SECTOR_NUMBER));
+ 522   1              printf(":RCL%02bX\n\r", READ_ATA_REG(CYLINDER_LOW));
+ 523   1              printf(":RCH%02bX\n\r", READ_ATA_REG(CYLINDER_HI));
+ 524   1              printf(":RSD%02bX\n\r", READ_ATA_REG(DRIVE_HEAD));
+ 525   1              printf(":RTR%02bX\n\r", READ_ATA_REG(PRISTATUS_REG));
+ 526   1              printf(":RER%02bX\n\r", READ_ATA_REG(ERROR_REG));
+ 527   1      }
+ 528          
+ 529          unsigned char READ_ATA_REG (unsigned char REG )
+ 530          {
+ 531   1              unsigned char return_val;
+ 532   1              P0 = 0xff;
+ 533   1              P1 = REG;
+ 534   1              RDn = 0;
+ 535   1              return_val = P0;
+ 536   1              RDn = 1;
+ 537   1              return return_val;
+ 538   1      }                  
+ 539          
+ 540          /*=======================================
+ 541              utility function
+ 542          
+ 543          =========================================*/
+ 544          
+ 545          /*
+ 546          function        : void delay(unsigned int dd)
+ 547          return          : none
+ 548          parameter       : int dd - delay counter (1 to 65535)
+C51 COMPILER V8.02   IDE_51_MAIN_REV6                                                      12/23/2006 00:34:01 PAGE 10  
+
+ 549          */
+ 550          void delay(unsigned int dd)
+ 551          {
+ 552   1              while(dd--) ;
+ 553   1      }
+ 554          
+ 555          
+ 556          /*=======================================
+ 557           Serial port support function
+ 558          =========================================*/
+ 559          void Init_serial() 
+ 560          {
+ 561   1         //' SET TH1 AND PCON AT FEQUENCY. = 18.432 MHz
+ 562   1         PCON |= 0x80; 
+ 563   1         TH1 = 246;
+ 564   1         SCON = 0x50; 
+ 565   1         TMOD = 0x20; 
+ 566   1         TR1= 1;     //' TIMER 1 RUN.
+ 567   1         TI   = 0;   //' SET TI SEND FIRST CHAR OF UART.
+ 568   1      }
+ 569          
+ 570          /*"(---------------------------------------------------------------------)"*/
+ 571          /*"(-                      APPLICATIONS SEND DATA                       -)"*/
+ 572          /*"(---------------------------------------------------------------------)"*/
+ 573          char putchar(unsigned char c) 
+ 574          {
+ 575   1              SBUF = c; 
+ 576   1              while(!TI);
+ 577   1              TI = 0;      //' CLEAR BIT FLAG TI_0
+ 578   1              return (c);  //' MOV DATA TO SERIAL 
+ 579   1      }
+ 580          
+ 581          /*"(---------------------------------------------------------------------)"*/
+ 582          /*"(-                    APPLICATIONS RECEIVE DATA                      -)"*/
+ 583          /*"(---------------------------------------------------------------------)"*/
+ 584          void RxdReceive () interrupt 4 
+ 585          {
+ 586   1              unsigned char c;
+ 587   1              if (RI == 1) 
+ 588   1              { 
+ 589   2                      c = SBUF;
+ 590   2                      Aux_Data[Bytes_write++] = c; //   
+ 591   2                      Aux_Data[Bytes_write+1] = '\0'; //   
+ 592   2                      RI = 0;
+ 593   2              }
+ 594   1              return;
+ 595   1      }
+ 596          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   3111    ----
+   CONSTANT SIZE    =    919    ----
+   XDATA SIZE       =    514      74
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =     91      10
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+C51 COMPILER V8.02   IDE_51_MAIN_REV6                                                      12/23/2006 00:34:01 PAGE 11  
+
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

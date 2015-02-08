@@ -1,0 +1,722 @@
+C51 COMPILER V8.02   ATA                                                                   05/11/2006 00:47:14 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE ATA
+OBJECT MODULE PLACED IN ata.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ata.c LARGE OMF2 DEBUG
+
+line level    source
+
+   1          /*! \file ata.c \brief IDE-ATA hard disk interface driver. */
+   2          //*****************************************************************************
+   3          //
+   4          // File Name    : 'ata.c'
+   5          // Title                : IDE-ATA interface driver for hard disks
+   6          // Author               : Pascal Stang
+   7          // Date                 : 11/22/2000
+   8          // Revised              : 4/19/2003
+   9          // Version              : 0.3
+  10          // Target MCU   : Atmel AVR Series
+  11          // Editor Tabs  : 4
+  12          //
+  13          // NOTE: This code is currently below version 1.0, and therefore is considered
+  14          // to be lacking in some functionality or documentation, or may not be fully
+  15          // tested.  Nonetheless, you can expect most functions to work.
+  16          //
+  17          // This code is distributed under the GNU Public License
+  18          //              which can be found at http://www.gnu.org/licenses/gpl.txt
+  19          //
+  20          //*****************************************************************************
+  21          
+  22          #include "rprintf.h"
+  23          #include "ata.h"
+  24          #include <stdio.h>
+  25          extern unsigned char sectordata[512];
+  26          extern void delay(unsigned int dd)
+  27          
+  28          //#define DEBUG_ATA     1
+  29          
+  30          // global variables
+  31          
+  32          // drive information
+  33          extern typeDriveInfo ataDriveInfo;
+*** ERROR C127 IN LINE 33 OF ATA.C: 'ataDriveInfo': invalid storage class
+  34          
+  35          
+  36          /*void ataInit(void)
+  37          {
+  38          
+  39          }
+  40          */
+  41          void ataDriveInit(void)
+  42          {
+*** ERROR C132 IN LINE 42 OF ATA.C: 'ataDriveInit': not in formal parameter list
+*** ERROR C141 IN LINE 42 OF ATA.C: syntax error near '{'
+  43                  unsigned char  i;
+*** ERROR C136 IN LINE 43 OF ATA.C: 'i': 'void' on variable
+*** ERROR C132 IN LINE 43 OF ATA.C: 'i': not in formal parameter list
+  44                  unsigned char* buffer = &sectordata; //(0x1E00)
+*** ERROR C244 IN LINE 44 OF ATA.C: 'buffer': can't initialize, bad type or class
+*** ERROR C132 IN LINE 44 OF ATA.C: 'buffer': not in formal parameter list
+  45          
+  46                  // read drive identity
+  47                  printf("\r\nScanning IDE interface...\r\n");
+*** ERROR C141 IN LINE 47 OF ATA.C: syntax error near '<string>'
+C51 COMPILER V8.02   ATA                                                                   05/11/2006 00:47:14 PAGE 2   
+
+*** ERROR C132 IN LINE 47 OF ATA.C: 'printf': not in formal parameter list
+  48                  // Wait for drive to be ready
+  49                  ataStatusWait(ATA_SR_BSY, ATA_SR_BSY);
+*** ERROR C141 IN LINE 49 OF ATA.C: syntax error near '0x80'
+*** ERROR C132 IN LINE 49 OF ATA.C: 'ataStatusWait': not in formal parameter list
+  50                  // issue identify command
+  51                  ataWriteByte(COMMAND_REG, 0xEC);
+*** ERROR C141 IN LINE 51 OF ATA.C: syntax error near '0xEC'
+*** ERROR C132 IN LINE 51 OF ATA.C: '_ataWriteByte': not in formal parameter list
+  52                  // wait for drive to request data transfer
+  53                  ataStatusWait(ATA_SR_DRQ, ATA_SR_DRQ);
+*** ERROR C141 IN LINE 53 OF ATA.C: syntax error near '0x08'
+*** ERROR C132 IN LINE 53 OF ATA.C: 'ataStatusWait': not in formal parameter list
+  54                  delay(200);
+*** ERROR C141 IN LINE 54 OF ATA.C: syntax error near '200'
+*** ERROR C132 IN LINE 54 OF ATA.C: 'delay': not in formal parameter list
+  55                  // read in the data
+  56                  ReadHDDBuffer();
+*** ERROR C132 IN LINE 56 OF ATA.C: 'ReadHDDBuffer': not in formal parameter list
+  57                  //ataReadDataBuffer(buffer, 512);
+  58          
+  59                  // set local drive info parameters
+  60                  ataDriveInfo.cylinders =        (unsigned int)(sectordata[ATA_IDENT_CYLINDERS*2+1]*256 + sectordata[ATA_IDENT_CY
+             -LINDERS*2]);
+*** ERROR C132 IN LINE 60 OF ATA.C: 'ataDriveInfo': not in formal parameter list
+*** ERROR C141 IN LINE 60 OF ATA.C: syntax error near '.'
+*** ERROR C244 IN LINE 60 OF ATA.C: 'cylinders': can't initialize, bad type or class
+*** ERROR C215 IN LINE 60 OF ATA.C: illegal type conversion
+*** ERROR C132 IN LINE 60 OF ATA.C: 'cylinders': not in formal parameter list
+  61                  ataDriveInfo.heads =             sectordata[ATA_IDENT_HEADS*2];
+*** ERROR C132 IN LINE 61 OF ATA.C: 'ataDriveInfo': not in formal parameter list
+*** ERROR C141 IN LINE 61 OF ATA.C: syntax error near '.'
+*** ERROR C244 IN LINE 61 OF ATA.C: 'heads': can't initialize, bad type or class
+*** ERROR C132 IN LINE 61 OF ATA.C: 'heads': not in formal parameter list
+  62                  ataDriveInfo.sectors =           sectordata[ATA_IDENT_SECTORS*2];
+*** ERROR C132 IN LINE 62 OF ATA.C: 'ataDriveInfo': not in formal parameter list
+*** ERROR C141 IN LINE 62 OF ATA.C: syntax error near '.'
+*** ERROR C244 IN LINE 62 OF ATA.C: 'sectors': can't initialize, bad type or class
+*** ERROR C132 IN LINE 62 OF ATA.C: 'sectors': not in formal parameter list
+  63                  ataDriveInfo.LBAsupport =        sectordata[ATA_IDENT_FIELDVALID*2];
+*** ERROR C132 IN LINE 63 OF ATA.C: 'ataDriveInfo': not in formal parameter list
+*** ERROR C141 IN LINE 63 OF ATA.C: syntax error near '.'
+*** ERROR C244 IN LINE 63 OF ATA.C: 'LBAsupport': can't initialize, bad type or class
+*** ERROR C132 IN LINE 63 OF ATA.C: 'LBAsupport': not in formal parameter list
+  64                  ataDriveInfo.sizeinsectors = (unsigned long) sectordata[123];
+*** ERROR C132 IN LINE 64 OF ATA.C: 'ataDriveInfo': not in formal parameter list
+*** ERROR C141 IN LINE 64 OF ATA.C: syntax error near '.'
+*** ERROR C244 IN LINE 64 OF ATA.C: 'sizeinsectors': can't initialize, bad type or class
+*** ERROR C132 IN LINE 64 OF ATA.C: 'sizeinsectors': not in formal parameter list
+  65                  ataDriveInfo.sizeinsectors = (unsigned long) ataDriveInfo.sizeinsectors *256 + sectordata[122];
+*** ERROR C132 IN LINE 65 OF ATA.C: 'ataDriveInfo': not in formal parameter list
+*** ERROR C141 IN LINE 65 OF ATA.C: syntax error near '.'
+*** ERROR C244 IN LINE 65 OF ATA.C: 'sizeinsectors': can't initialize, bad type or class
+*** ERROR C202 IN LINE 65 OF ATA.C: 'ataDriveInfo': undefined identifier
+*** ERROR C132 IN LINE 65 OF ATA.C: 'sizeinsectors': not in formal parameter list
+  66                  ataDriveInfo.sizeinsectors = (unsigned long) ataDriveInfo.sizeinsectors *256 + sectordata[121];
+*** ERROR C132 IN LINE 66 OF ATA.C: 'ataDriveInfo': not in formal parameter list
+*** ERROR C141 IN LINE 66 OF ATA.C: syntax error near '.'
+*** ERROR C244 IN LINE 66 OF ATA.C: 'sizeinsectors': can't initialize, bad type or class
+*** ERROR C202 IN LINE 66 OF ATA.C: 'ataDriveInfo': undefined identifier
+*** ERROR C132 IN LINE 66 OF ATA.C: 'sizeinsectors': not in formal parameter list
+  67                  ataDriveInfo.sizeinsectors = (unsigned long) ataDriveInfo.sizeinsectors *256 + sectordata[120];
+C51 COMPILER V8.02   ATA                                                                   05/11/2006 00:47:14 PAGE 3   
+
+*** ERROR C132 IN LINE 67 OF ATA.C: 'ataDriveInfo': not in formal parameter list
+*** ERROR C141 IN LINE 67 OF ATA.C: syntax error near '.'
+*** ERROR C244 IN LINE 67 OF ATA.C: 'sizeinsectors': can't initialize, bad type or class
+*** ERROR C202 IN LINE 67 OF ATA.C: 'ataDriveInfo': undefined identifier
+*** ERROR C132 IN LINE 67 OF ATA.C: 'sizeinsectors': not in formal parameter list
+  68          
+  69          
+  70                  printf("ataDriveInfo.cylinders  = %d [%XH]\n",ataDriveInfo.cylinders ,ataDriveInfo.cylinders   );
+*** ERROR C141 IN LINE 70 OF ATA.C: syntax error near '<string>'
+*** ERROR C132 IN LINE 70 OF ATA.C: 'printf': not in formal parameter list
+  71                  printf("ataDriveInfo.heads = %bd [%bX]\n",ataDriveInfo.heads ,ataDriveInfo.heads );
+*** ERROR C141 IN LINE 71 OF ATA.C: syntax error near '<string>'
+*** ERROR C132 IN LINE 71 OF ATA.C: 'printf': not in formal parameter list
+  72                  printf("ataDriveInfo.sectors  = %bd [%bX]\n",ataDriveInfo.sectors ,ataDriveInfo.sectors );
+*** ERROR C141 IN LINE 72 OF ATA.C: syntax error near '<string>'
+*** ERROR C132 IN LINE 72 OF ATA.C: 'printf': not in formal parameter list
+  73                  printf("ataDriveInfo.LBAsupport  = %bd [%bX]\n",ataDriveInfo.LBAsupport ,ataDriveInfo.LBAsupport);
+*** ERROR C141 IN LINE 73 OF ATA.C: syntax error near '<string>'
+*** ERROR C132 IN LINE 73 OF ATA.C: 'printf': not in formal parameter list
+  74                  printf("ataDriveInfo.sizeinsectors  = %ld [%lX]\n",ataDriveInfo.sizeinsectors ,ataDriveInfo.sizeinsector
+             -s);
+*** ERROR C141 IN LINE 74 OF ATA.C: syntax error near '<string>'
+*** ERROR C132 IN LINE 74 OF ATA.C: 'printf': not in formal parameter list
+  75          
+  76          
+  77                  // copy model string
+  78          
+  79                  for(i=0; i<40; i+=2)
+*** ERROR C141 IN LINE 79 OF ATA.C: syntax error near 'for'
+*** ERROR C141 IN LINE 79 OF ATA.C: syntax error near '=', expected ')'
+*** ERROR C129 IN LINE 79 OF ATA.C: missing ';' before '<'
+  80                  {
+  81                          // correct for byte order
+  82                          ataDriveInfo.model[i  ] = buffer[(ATA_IDENT_MODEL*2) + i + 1];
+  83                          ataDriveInfo.model[i+1] = buffer[(ATA_IDENT_MODEL*2) + i    ];
+  84                  }
+  85                  // terminate string
+  86                  ataDriveInfo.model[40] = 0;
+  87          
+  88                  // process and print info
+  89                  if(ataDriveInfo.LBAsupport)
+  90                  {
+  91                          // LBA support
+  92                          printf("Drive 0: %ldMB ",  ataDriveInfo.sizeinsectors/(1000000/512) );
+  93                          //printf("Drive 0: %d Sectors ", ataDriveInfo.sizeinsectors/512 );
+  94                          printf("LBA mode -- MODEL: ");
+  95                  }
+  96                  else
+  97                  {
+  98                          // CHS, no LBA support
+  99                          // calculate drive size
+ 100                          ataDriveInfo.sizeinsectors = (unsigned long) ataDriveInfo.cylinders*
+ 101                                                                                                          ataDriveInfo.heads*ataDriveInfo.sectors;
+ 102                          printf("Drive 0: %dMB ", ataDriveInfo.sizeinsectors/(1000000/512) );
+ 103                          printf("CHS mode C=%d H=%d S=%d -- MODEL: ", ataDriveInfo.cylinders, ataDriveInfo.heads, ataDriveInfo.se
+             -ctors );
+ 104                  }
+ 105                  // print model information      
+ 106                  rprintfStr(ataDriveInfo.model); printf("\n");
+ 107          
+ 108                  //reportbuffers();
+ 109                  // initialize local disk parameters
+C51 COMPILER V8.02   ATA                                                                   05/11/2006 00:47:14 PAGE 4   
+
+ 110                  //ataDriveInfo.cylinders = ATA_DISKPARM_CLYS;
+ 111                  //ataDriveInfo.heads = ATA_DISKPARM_HEADS;
+ 112                  //ataDriveInfo.sectors = ATA_DISKPARM_SECTORS;
+ 113          
+ 114          }
+ 115          
+ 116          void ataDiskErr(void)
+ 117          {
+ 118                  unsigned char b;
+ 119          
+ 120                  b = ataReadByte(ATA_REG_ERROR); 
+ 121                  rprintfProgStrM("ATA Error: "); 
+ 122                  rprintfu08(b); 
+ 123                  rprintfCRLF();
+ 124          }
+ 125          
+ 126          void ataSetDrivePowerMode(u08 DriveNo, u08 mode, u08 timeout)
+ 127          {
+ 128                  // select drive
+ 129                  ataDriveSelect(DriveNo);
+ 130                  // Wait for drive to be ready
+ 131                  ataStatusWait(ATA_SR_BSY, ATA_SR_BSY);
+ 132          
+ 133                  // set mode
+ 134                  switch(mode)
+ 135                  {
+ 136                  case ATA_DISKMODE_SPINDOWN:             ataWriteByte(ATA_REG_CMDSTATUS1, ATA_CMD_SPINDOWN); break;
+ 137                  case ATA_DISKMODE_SPINUP:               ataWriteByte(ATA_REG_CMDSTATUS1, ATA_CMD_SPINUP); break;
+ 138                  case ATA_DISKMODE_SETTIMEOUT:
+ 139                          ataWriteByte(ATA_REG_SECCOUNT, timeout);
+ 140                          ataWriteByte(ATA_REG_CMDSTATUS1, ATA_CMD_IDLE_5SU);
+ 141                          break;
+ 142                  case ATA_DISKMODE_SLEEP:                ataWriteByte(ATA_REG_CMDSTATUS1, ATA_CMD_SLEEP); break;
+ 143                  default:
+ 144                          break;
+ 145                  }
+ 146          }
+ 147          
+ 148          void ataPrintSector( u08 *Buffer)
+ 149          {
+ 150                  u08 i;
+ 151                  u16 j;
+ 152                  u08 *buf;
+ 153                  u08 s;
+ 154          
+ 155                  buf = Buffer;
+ 156                  
+ 157                  // print the low order address indicies
+ 158                  rprintfProgStrM("     00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F  0123456789ABCDEF\r\n");
+ 159                  rprintfProgStrM("     -----------------------------------------------  ---- ASCII -----\r\n");
+ 160                  
+ 161                  // print the data
+ 162                  for(j=0; j<0x20; j++)
+ 163                  {
+ 164                          // print the high order address index for this line
+ 165                          rprintfu16(j<<4);
+ 166                          rprintfProgStrM(" ");
+ 167          
+ 168                          // print the hex data
+ 169                          for(i=0; i<0x10; i++)
+ 170                          {
+ 171                                  rprintfu08(buf[(j<<4)+i]);
+C51 COMPILER V8.02   ATA                                                                   05/11/2006 00:47:14 PAGE 5   
+
+ 172                                  rprintfProgStrM(" ");
+ 173                          }
+ 174                          
+ 175                          // leave some space
+ 176                          rprintfProgStrM(" ");
+ 177          
+ 178                          // print the ascii data
+ 179                          for(i=0; i<0x10; i++)
+ 180                          {
+ 181                                  s = buf[(j<<4)+i]; 
+ 182                                  // make sure character is printable
+ 183                                  if(s >= 0x20)
+ 184                                  {
+ 185                                          rprintfChar(s);
+ 186                                  }
+ 187                                  else
+ 188                                  {
+ 189                                          rprintfChar(0x20);
+ 190                                  }
+ 191          
+ 192                          }
+ 193                          rprintfCRLF();
+ 194                  }
+ 195          }
+ 196          
+ 197          void ataReadDataBuffer(u08 *Buffer, u16 numBytes)
+ 198          {
+ 199                  unsigned int i;
+ 200          
+ 201                  //sbi(MCUCR, SRW);                      // enable RAM waitstate
+ 202          
+ 203                  // read data from drive
+ 204                  for (i=0; i<(numBytes/16); i++)
+ 205                  {
+ 206                          // optimize by reading 16 bytes in-line before looping
+ 207                          *Buffer++ = *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAL);
+ 208                          *Buffer++ = *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAH);
+ 209                          *Buffer++ = *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAL);
+ 210                          *Buffer++ = *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAH);
+ 211                          *Buffer++ = *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAL);
+ 212                          *Buffer++ = *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAH);
+ 213                          *Buffer++ = *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAL);
+ 214                          *Buffer++ = *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAH);
+ 215                          *Buffer++ = *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAL);
+ 216                          *Buffer++ = *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAH);
+ 217                          *Buffer++ = *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAL);
+ 218                          *Buffer++ = *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAH);
+ 219                          *Buffer++ = *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAL);
+ 220                          *Buffer++ = *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAH);
+ 221                          *Buffer++ = *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAL);
+ 222                          *Buffer++ = *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAH);
+ 223                  }
+ 224                  //cbi(MCUCR, SRW);                      // disable RAM waitstate
+ 225                  
+ 226          }
+ 227          
+ 228          void ataWriteDataBuffer(u08 *Buffer, u16 numBytes)
+ 229          {
+ 230                  register unsigned char temp;
+ 231                  unsigned int i;
+ 232          
+ 233                  //sbi(MCUCR, SRW);                      // enable RAM waitstate
+C51 COMPILER V8.02   ATA                                                                   05/11/2006 00:47:14 PAGE 6   
+
+ 234          
+ 235                  // write data to drive
+ 236                  for (i=0; i<(numBytes/16); i++)         
+ 237                  {
+ 238                          // optimize by writing 16 bytes in-line before looping
+ 239                          // keep byte order correct by using temp register
+ 240                          temp = *Buffer++;
+ 241                          *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAH) = *Buffer++;
+ 242                          *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAL) = temp;
+ 243                          temp = *Buffer++;
+ 244                          *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAH) = *Buffer++;
+ 245                          *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAL) = temp;
+ 246                          temp = *Buffer++;
+ 247                          *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAH) = *Buffer++;
+ 248                          *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAL) = temp;
+ 249                          temp = *Buffer++;
+ 250                          *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAH) = *Buffer++;
+ 251                          *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAL) = temp;
+ 252                          temp = *Buffer++;
+ 253                          *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAH) = *Buffer++;
+ 254                          *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAL) = temp;
+ 255                          temp = *Buffer++;
+ 256                          *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAH) = *Buffer++;
+ 257                          *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAL) = temp;
+ 258                          temp = *Buffer++;
+ 259                          *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAH) = *Buffer++;
+ 260                          *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAL) = temp;
+ 261                          temp = *Buffer++;
+ 262                          *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAH) = *Buffer++;
+ 263                          *((volatile unsigned char*) ATA_REG_BASE + ATA_REG_DATAL) = temp;
+ 264                  }
+ 265                  //cbi(MCUCR, SRW);                      // disable RAM waitstate
+ 266          
+ 267          }
+ 268          
+ 269          u08 ataStatusWait(u08 mask, u08 waitStatus)
+ 270          {
+ 271                  register u08 status;
+ 272          
+ 273                  delay(100);
+ 274          
+ 275                  // wait for desired status
+ 276                  while( ((status = ataReadByte(ATA_REG_CMDSTATUS1)) & mask) == waitStatus );
+ 277          
+ 278                  return status;
+ 279          }
+ 280          
+ 281          
+ 282          unsigned char ataReadSectorsCHS(        unsigned char Drive, 
+ 283                                                                                                  unsigned char Head, 
+ 284                                                                                                  unsigned int Track,
+ 285                                                                                                  unsigned char Sector,
+ 286                                                                                                  unsigned int numsectors,
+ 287                                                                                                  unsigned char *Buffer)
+ 288          {
+ 289                  unsigned char temp;
+ 290          
+ 291                  // Wait for drive to be ready
+ 292                  temp = ataStatusWait(ATA_SR_BSY, ATA_SR_BSY);
+ 293          
+ 294                  // Prepare parameters...
+ 295                  ataWriteByte(ATA_REG_HDDEVSEL, 0xA0+(Drive ? 0x10:00)+Head); // CHS mode/Drive/Head
+C51 COMPILER V8.02   ATA                                                                   05/11/2006 00:47:14 PAGE 7   
+
+ 296                  ataWriteByte(ATA_REG_CYLHI, Track>>8);                  // MSB of track
+ 297                  ataWriteByte(ATA_REG_CYLLO, Track);                     // LSB of track
+ 298                  ataWriteByte(ATA_REG_STARTSEC, Sector);         // sector
+ 299                  ataWriteByte(ATA_REG_SECCOUNT, numsectors);     // # of sectors
+ 300          
+ 301                  // Issue read sector command...
+ 302                  ataWriteByte(ATA_REG_CMDSTATUS1, 0x21);
+ 303          
+ 304                  // Wait for drive to be ready
+ 305                  temp = ataStatusWait(ATA_SR_BSY, ATA_SR_BSY);
+ 306          
+ 307                  if (temp & ATA_SR_ERR)
+ 308                  {
+ 309                          rprintfProgStrM("RD ERR\r\n");
+ 310                          return 1;
+ 311                  }
+ 312          
+ 313                  // Wait for drive to request data transfer
+ 314                  ataStatusWait(ATA_SR_DRQ, 0);
+ 315          
+ 316                  // read data from drive
+ 317                  ataReadDataBuffer(Buffer, 512*numsectors);
+ 318          
+ 319                  // Return the error bit from the status register...
+ 320                  temp = ataReadByte(ATA_REG_CMDSTATUS1); // read status register
+ 321          
+ 322                  return (temp & ATA_SR_ERR) ? 1:0;
+ 323          }
+ 324          
+ 325          
+ 326          unsigned char ataWriteSectorsCHS(unsigned char Drive, 
+ 327                                                                                                  unsigned char Head, 
+ 328                                                                                                  unsigned int Track,
+ 329                                                                                                  unsigned char Sector,
+ 330                                                                                                  unsigned int numsectors,
+ 331                                                                                                  unsigned char *Buffer)
+ 332          {
+ 333                  unsigned char temp;
+ 334          
+ 335                  // Wait for drive to be ready
+ 336                  temp = ataStatusWait(ATA_SR_BSY, ATA_SR_BSY);
+ 337          
+ 338                  // Prepare parameters...
+ 339                  ataWriteByte(ATA_REG_HDDEVSEL, 0xA0+(Drive ? 0x10:00)+Head); // CHS mode/Drive/Head
+ 340                  ataWriteByte(ATA_REG_CYLHI, Track>>8);                  // MSB of track
+ 341                  ataWriteByte(ATA_REG_CYLLO, Track);                     // LSB of track
+ 342                  ataWriteByte(ATA_REG_STARTSEC, Sector);         // sector
+ 343                  ataWriteByte(ATA_REG_SECCOUNT, numsectors);     // # of sectors
+ 344          
+ 345                  // Issue write sector command
+ 346                  ataWriteByte(ATA_REG_CMDSTATUS1, 0x31);
+ 347          
+ 348                  //delay(100);
+ 349          
+ 350                  // Wait for drive to request data transfer
+ 351                  ataStatusWait(ATA_SR_DRQ, 0);
+ 352          
+ 353                  // write data to drive
+ 354                  ataWriteDataBuffer(Buffer, 512*numsectors);
+ 355                  
+ 356                  // Wait for drive to finish write
+ 357                  temp = ataStatusWait(ATA_SR_BSY, ATA_SR_BSY);
+C51 COMPILER V8.02   ATA                                                                   05/11/2006 00:47:14 PAGE 8   
+
+ 358          
+ 359                  // check for errors
+ 360                  if (temp & ATA_SR_ERR)
+ 361                  {
+ 362                          rprintfProgStrM("WR ERR\r\n");
+ 363                          return 1;
+ 364                  }
+ 365          
+ 366                  // Return the error bit from the status register...
+ 367                  return (temp & ATA_SR_ERR) ? 1:0;
+ 368          }
+ 369          
+ 370          unsigned char ataReadSectorsLBA(        unsigned char Drive, 
+ 371                                                                                                  unsigned long lba,
+ 372                                                                                                  unsigned int numsectors,
+ 373                                                  unsigned char *Buffer)
+ 374          {
+ 375                  unsigned int cyl, head, sect;
+ 376                  unsigned char temp;
+ 377          
+ 378          #ifdef DEBUG_ATA
+                      rprintfProgStrM("ATA LBA read ");
+                      rprintfu32(lba); rprintfProgStrM(" ");
+                      rprintfu16(numsectors); rprintfProgStrM(" ");
+                      rprintfu16((unsigned int)Buffer); 
+                      rprintfCRLF();
+              #endif
+ 385          
+ 386                  sect = (int) ( lba & 0x000000ffL );
+ 387                  lba = lba >> 8;
+ 388                  cyl = (int) ( lba & 0x0000ffff );
+ 389                  lba = lba >> 16;
+ 390                  head = ( (int) ( lba & 0x0fL ) ) | ATA_HEAD_USE_LBA;
+ 391          
+ 392                  temp = ataReadSectorsCHS( Drive, head, cyl, sect, numsectors, Buffer );
+ 393          
+ 394                  if(temp)
+ 395                          ataDiskErr();
+ 396                  return temp;
+ 397          }
+ 398          
+ 399          unsigned char ataWriteSectorsLBA(       unsigned char Drive, 
+ 400                                                                                                          unsigned long lba,
+ 401                                                                                                          unsigned int numsectors,
+ 402                                                          unsigned char *Buffer)
+ 403          {
+ 404                  unsigned int cyl, head, sect;
+ 405                  unsigned char temp;
+ 406          
+ 407          #ifdef DEBUG_ATA
+                      rprintfProgStrM("ATA LBA write ");
+                      rprintfu32(lba); rprintfProgStrM(" ");
+                      rprintfu16(numsectors); rprintfProgStrM(" ");
+                      rprintfu16((unsigned int)Buffer); 
+                      rprintfCRLF();
+              #endif
+ 414          
+ 415                  sect = (int) ( lba & 0x000000ffL );
+ 416                  lba = lba >> 8;
+ 417                  cyl = (int) ( lba & 0x0000ffff );
+ 418                  lba = lba >> 16;
+ 419                  head = ( (int) ( lba & 0x0fL ) ) | ATA_HEAD_USE_LBA;
+C51 COMPILER V8.02   ATA                                                                   05/11/2006 00:47:14 PAGE 9   
+
+ 420          
+ 421                  temp = ataWriteSectorsCHS( Drive, head, cyl, sect, numsectors, Buffer );
+ 422          
+ 423                  if(temp)
+ 424                          ataDiskErr();
+ 425                  return temp;
+ 426          }                                       
+ 427          
+ 428          
+ 429          unsigned char ataReadSectors(   unsigned char Drive, 
+ 430                                                                                          unsigned long lba,
+ 431                                                                                          unsigned int numsectors,
+ 432                                          unsigned char *Buffer)
+ 433          {
+ 434                  unsigned int cyl, head, sect;
+ 435                  unsigned char temp;
+ 436          
+ 437                  // check if drive supports native LBA mode
+ 438                  if(ataDriveInfo.LBAsupport)
+ 439                  {
+ 440                          // drive supports using native LBA
+ 441                          temp = ataReadSectorsLBA(Drive, lba, numsectors, Buffer);
+ 442                  }
+ 443                  else
+ 444                  {
+ 445                          // drive required CHS access
+ 446                          #ifdef DEBUG_ATA
+                                      // do this defore destroying lba
+                                      rprintfProgStrM("ATA LBA for CHS read: ");
+                                      rprintfProgStrM("LBA="); rprintfu32(lba); rprintfProgStrM(" ");
+                              #endif
+ 451          
+ 452                          // convert LBA to pseudo CHS
+ 453                          // remember to offset the sector count by one
+ 454                          sect = (u08) (lba % ataDriveInfo.sectors)+1;
+ 455                          lba = lba / ataDriveInfo.sectors;
+ 456                          head = (u08) (lba % ataDriveInfo.heads);
+ 457                          lba = lba / ataDriveInfo.heads;
+ 458                          cyl = (u16) lba;
+ 459          
+ 460                          #ifdef DEBUG_ATA
+                                      rprintfProgStrM("C:H:S=");
+                                      rprintfu16(cyl); rprintfProgStrM(":");
+                                      rprintfu08(head); rprintfProgStrM(":");
+                                      rprintfu08(sect); rprintfCRLF();
+                              #endif
+ 466          
+ 467                          temp = ataReadSectorsCHS( Drive, head, cyl, sect, numsectors, Buffer );
+ 468                  }
+ 469          
+ 470                  if(temp)
+ 471                          ataDiskErr();
+ 472                  return temp;
+ 473          }
+ 474          
+ 475          
+ 476          unsigned char ataWriteSectors(unsigned char Drive, 
+ 477                                                                                          unsigned long lba,
+ 478                                                                                          unsigned int numsectors,
+ 479                                          unsigned char *Buffer)
+ 480          {
+ 481                  unsigned int cyl, head, sect;
+C51 COMPILER V8.02   ATA                                                                   05/11/2006 00:47:14 PAGE 10  
+
+ 482                  unsigned char temp;
+ 483          
+ 484                  // check if drive supports native LBA mode
+ 485                  if(ataDriveInfo.LBAsupport)
+ 486                  {
+ 487                          // drive supports using native LBA
+ 488                          temp = ataWriteSectorsLBA(Drive, lba, numsectors, Buffer);
+ 489                  }
+ 490                  else
+ 491                  {
+ 492                          // drive required CHS access
+ 493                          #ifdef DEBUG_ATA
+                                      // do this defore destroying lba
+                                      rprintfProgStrM("ATA LBA for CHS write: ");
+                                      rprintfProgStrM("LBA="); rprintfu32(lba); rprintfProgStrM(" ");
+                              #endif
+ 498          
+ 499                          // convert LBA to pseudo CHS
+ 500                          // remember to offset the sector count by one
+ 501                          sect = (u08) (lba % ataDriveInfo.sectors)+1;
+ 502                          lba = lba / ataDriveInfo.sectors;
+ 503                          head = (u08) (lba % ataDriveInfo.heads);
+ 504                          lba = lba / ataDriveInfo.heads;
+ 505                          cyl = (u16) lba;
+ 506          
+ 507                          #ifdef DEBUG_ATA
+                                      rprintfProgStrM("C:H:S=");
+                                      rprintfu16(cyl); rprintfProgStrM(":");
+                                      rprintfu08(head); rprintfProgStrM(":");
+                                      rprintfu08(sect); rprintfCRLF();
+                              #endif
+ 513          
+ 514                          temp = ataWriteSectorsCHS( Drive, head, cyl, sect, numsectors, Buffer );
+ 515                  }
+ 516          
+ 517                  if(temp)
+ 518                          ataDiskErr();
+ 519                  return temp;
+ 520          }                                       
+ 521          
+ 522          void ataDriveSelect(u08 DriveNo)
+ 523          {
+ 524                  ataWriteByte(ATA_REG_HDDEVSEL, 0xA0+(DriveNo ? 0x10:00)); // Drive selection
+ 525          }
+ 526           
+ 527          //----------------------------------------------------------------------------
+ 528          // Set drive mode (STANDBY, IDLE)
+ 529          //----------------------------------------------------------------------------
+ 530          /*#define STANDBY 0
+ 531          #define IDLE    1
+ 532          #define SLEEP   2 
+ 533          */ 
+ 534          
+ 535          /*
+ 536          unsigned char SetMode(unsigned char DriveNo, unsigned char Mode, unsigned char PwrDown) 
+ 537          {
+ 538            WriteBYTE(CMD, 6, 0xA0 + (DriveNo ? 0x10:0x00)); // Select drive
+ 539            WriteBYTE(CMD, 2, (PwrDown ? 0x01:0x00)); // Enable automatic power down
+ 540            switch (Mode) 
+ 541            {
+ 542              case STANDBY: WriteBYTE(CMD,7, 0xE2); break;
+ 543              case IDLE:    WriteBYTE(CMD,7, 0xE3); break;
+C51 COMPILER V8.02   ATA                                                                   05/11/2006 00:47:14 PAGE 11  
+
+ 544              // NOTE: To recover from sleep, either issue a soft or hardware reset !
+ 545              // (But not on all drives, f.ex seagate ST3655A it's not nessecary to reset
+ 546              // but only to go in Idle mode, But on a Conner CFA170A it's nessecary with
+ 547              // a reset)
+ 548              case SLEEP:   WriteBYTE(CMD,7, 0xE6); break;
+ 549            }
+ 550            Timer10mSec=10000;
+ 551            while ((ReadBYTE(CMD,7) & 0xC0)!=0x40 && Timer10mSec); // Wait for DRDY & NOT BUSY 
+ 552            if (Timer10mSec==0) return 0xFF;                       //   or timeout
+ 553           
+ 554            // Return the error register...
+ 555            return ReadBYTE(CMD, 1);
+ 556          }
+ 557          
+ 558          */
+ 559          
+ 560          u08 ataReadByte(u08 reg)
+ 561          {
+ 562                  register u08 ret;
+ 563                  //sbi(MCUCR, SRW);                      // enable RAM waitstate
+ 564                  ret = *((volatile unsigned char*) ATA_REG_BASE + reg);
+ 565                  //cbi(MCUCR, SRW);                      // disable RAM waitstate
+ 566                  return ret;
+ 567          }
+ 568          
+ 569          void ataWriteByte(u08 reg, u08 data)
+ 570          {
+ 571                  //sbi(MCUCR, SRW);                      // enable RAM waitstate
+ 572                  *((volatile unsigned char*) ATA_REG_BASE + reg) = data;
+ 573                  //cbi(MCUCR, SRW);                      // disable RAM waitstate
+ 574          }
+ 575          
+ 576           
+ 577          void ataShowRegisters(unsigned char DriveNo) 
+ 578          { 
+ 579                  ataWriteByte(ATA_REG_HDDEVSEL, 0xA0 + (DriveNo ? 0x10:0x00)); // Select drive
+ 580                  
+ 581                  rprintfProgStrM("R0: DATALOW  = 0x");   rprintfu08(ataReadByte(ATA_REG_DATAL    ));             rprintfProgStrM(" \r\n");
+ 582                  rprintfProgStrM("R1: ERROR    = 0x");   rprintfu08(ataReadByte(ATA_REG_ERROR    ));             rprintfProgStrM(" \r\n");
+ 583                  rprintfProgStrM("R2: SECT CNT = 0x");   rprintfu08(ataReadByte(ATA_REG_SECCOUNT));              rprintfProgStrM(" \r\n"
+             -);
+ 584                  rprintfProgStrM("R3: SECT NUM = 0x");   rprintfu08(ataReadByte(ATA_REG_STARTSEC));              rprintfProgStrM(" \r\n"
+             -);
+ 585                  rprintfProgStrM("R4: CYL LOW  = 0x");   rprintfu08(ataReadByte(ATA_REG_CYLLO    ));             rprintfProgStrM(" \r\n");
+ 586                  rprintfProgStrM("R5: CYL HIGH = 0x");   rprintfu08(ataReadByte(ATA_REG_CYLHI    ));             rprintfProgStrM(" \r\n");
+ 587                  rprintfProgStrM("R6: HEAD/DEV = 0x");   rprintfu08(ataReadByte(ATA_REG_HDDEVSEL));              rprintfProgStrM(" \r\n"
+             -);
+ 588                  rprintfProgStrM("R7: CMD/STA  = 0x");   rprintfu08(ataReadByte(ATA_REG_CMDSTATUS1));    rprintfProgStrM("\r\n"
+             -);
+ 589          } 
+ 590          
+ 591          unsigned char ataSWReset(void)
+ 592          {
+ 593                  ataWriteByte(ATA_REG_HDDEVSEL, 0x06);   // SRST and nIEN bits
+ 594                  delay(10);      // 10uS delay
+ 595                  ataWriteByte(ATA_REG_HDDEVSEL, 0x02);   // nIEN bits
+ 596                  delay(10);      // 10 uS delay
+ 597             
+ 598             while( (ataReadByte(ATA_REG_CMDSTATUS1) & 0xC0) != 0x40 ); // Wait for DRDY and not BSY
+ 599              
+ 600                  return ataReadByte(ATA_REG_CMDSTATUS1) + ataReadByte(ATA_REG_ERROR);
+ 601          }
+C51 COMPILER V8.02   ATA                                                                   05/11/2006 00:47:14 PAGE 12  
+
+ 602          
+ 603          /*
+ 604          unsigned char ATA_Idle(unsigned char Drive)
+ 605          {
+ 606          
+ 607            WriteBYTE(CMD, 6, 0xA0 + (Drive ? 0x10:0x00)); // Select drive
+ 608            WriteBYTE(CMD,7, 0xE1);
+ 609          
+ 610            while ((ReadBYTE(CMD,7) & 0xC0)!=0x40); // Wait for DRDY & NOT BUSY 
+ 611          
+ 612            // Return the error register...
+ 613            return ReadBYTE(CMD, 1);
+ 614          }
+ 615          */
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  67 ERROR(S)

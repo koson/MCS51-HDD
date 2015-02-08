@@ -1,0 +1,117 @@
+#include "fat.h"
+#define DRIVE0		0
+#include "ata.h"
+#include <stdio.h>
+
+
+struct partrecord PartInfo;
+unsigned char Fat32Enabled;
+unsigned long FirstDataSector;
+unsigned int  BytesPerSector;
+unsigned int  SectorsPerCluster;
+unsigned long FirstFATSector;
+unsigned long FirstDirSector;
+unsigned long FileSize;
+unsigned long FatInCache = 0;
+unsigned char *SectorBuffer;
+
+
+
+unsigned char fatInit( unsigned char device)
+{
+	//struct partrecord *pr;
+	struct bpb710 *bpb;
+
+	// read partition table
+	// TODO.... error checking
+	ataReadSectors(DRIVE0, 0, 1, SectorBuffer);
+	// map first partition record	
+	// save partition information to global PartInfo
+	PartInfo = *((struct partrecord *) ((struct partsector *) SectorBuffer)->psPart);
+//	PartInfo = *pr;
+	
+	// Read the Partition BootSector
+	// **first sector of partition in PartInfo.prStartLBA
+	ataReadSectors( DRIVE0, PartInfo.prStartLBA, 1, SectorBuffer );
+	bpb = (struct bpb710 *) ((struct bootsector710 *) SectorBuffer)->bsBPB;
+
+	// setup global disk constants
+	FirstDataSector	= PartInfo.prStartLBA;
+	if(bpb->bpbFATsecs)
+	{
+		// bpbFATsecs is non-zero and is therefore valid
+		FirstDataSector	+= bpb->bpbResSectors + bpb->bpbFATs * bpb->bpbFATsecs;
+	}
+	else
+	{
+		// bpbFATsecs is zero, real value is in bpbBigFATsecs
+		FirstDataSector	+= bpb->bpbResSectors + bpb->bpbFATs * bpb->bpbBigFATsecs;
+	}
+	SectorsPerCluster	= bpb->bpbSecPerClust;
+	BytesPerSector		= bpb->bpbBytesPerSec;
+	FirstFATSector		= bpb->bpbResSectors + PartInfo.prStartLBA;
+
+	switch (PartInfo.prPartType)
+	{
+		case PART_TYPE_DOSFAT16:
+		case PART_TYPE_FAT16:
+		case PART_TYPE_FAT16LBA:
+			// first directory cluster is 2 by default (clusters range 2->big)
+			FirstDirSector	= CLUST_FIRST;
+			// push data sector pointer to end of root directory area
+			//FirstDataSector += (bpb->bpbRootDirEnts)/DIRENTRIES_PER_SECTOR;
+			Fat32Enabled = FALSE;
+			break;
+		case PART_TYPE_FAT32LBA:
+		case PART_TYPE_FAT32:
+			// bpbRootClust field exists in FAT32 bpb710, but not in lesser bpb's
+			FirstDirSector = bpb->bpbRootClust;
+			// push data sector pointer to end of root directory area
+			// need this? FirstDataSector += (bpb->bpbRootDirEnts)/DIRENTRIES_PER_SECTOR;
+			Fat32Enabled = TRUE;
+			break;
+		default:
+			printf("Found: No Partition!\r\n");
+			//return 1;
+			break;
+	}
+
+
+	switch (PartInfo.prPartType)
+	{
+		case PART_TYPE_DOSFAT16:
+				printf("Found: DOSFAT 16\r\n");
+				break;
+		case PART_TYPE_FAT16:
+				printf("Found: FAT16\r\n");
+				break;
+		case PART_TYPE_FAT16LBA:
+				printf("Found: FAT16 LBA\r\n");
+				break;
+		case PART_TYPE_FAT32LBA:
+				printf("Found: FAT32 LBA\r\n");
+				break;
+		case PART_TYPE_FAT32:
+				printf("Found: FAT32\r\n");
+				//return 1;	
+				break;
+		default:
+				printf("Found: No Partition!\r\n");
+				//return 1;
+				break;
+	}
+
+	printfProgStrM("First sector    : ");	rprintfu32(PartInfo.prStartLBA);	rprintfCRLF();
+	printfProgStrM("Size            : ");	rprintfu32(PartInfo.prSize);		rprintfCRLF();
+	printfProgStrM("bytes/sector    : ");	rprintfu16(bpb->bpbBytesPerSec);	rprintfCRLF();
+	printfProgStrM("sectors/cluster : ");	rprintfu08(bpb->bpbSecPerClust);	rprintfCRLF();
+	printfProgStrM("reserved sectors: ");	rprintfu16(bpb->bpbResSectors);		rprintfCRLF();
+	printfProgStrM("FatSectors      : ");	rprintfu16(bpb->bpbFATsecs);		rprintfCRLF();
+	printfProgStrM("BigFatSectors   : ");	rprintfu32(bpb->bpbBigFATsecs);		rprintfCRLF();
+	printfProgStrM("Number of Fats  : ");	rprintfu08(bpb->bpbFATs);			rprintfCRLF();
+	printfProgStrM("First Fat Sector: ");	rprintfu32(FirstFATSector);			rprintfCRLF();
+	printfProgStrM("First Data Sect : ");	rprintfu32(FirstDataSector);		rprintfCRLF();
+	printfProgStrM("First Dir Clust : ");	rprintfu32(FirstDirSector);			rprintfCRLF();
+
+	return 0;	
+}

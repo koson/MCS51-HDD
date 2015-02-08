@@ -1,0 +1,1213 @@
+; .\IDE_51_main_rev1.SRC generated from: IDE_51_main_rev1.c
+; COMPILER INVOKED BY:
+;        C:\Keil\C51\BIN\C51.EXE IDE_51_main_rev1.c OMF2 INCDIR(C:\Keil\C51\INC\Atmel;C:\Keil\C51\INC) SRC(.\IDE_51_main_rev1.SRC)
+
+$NOMOD51
+
+NAME	IDE_51_MAIN_REV1
+
+CCF2	BIT	0D8H.2
+CCF3	BIT	0D8H.3
+P0	DATA	080H
+CCF4	BIT	0D8H.4
+P1	DATA	090H
+P2	DATA	0A0H
+P3	DATA	0B0H
+AC	BIT	0D0H.6
+P4	DATA	0C0H
+T0	BIT	0B0H.4
+RDn	BIT	090H.6
+T1	BIT	0B0H.5
+EA	BIT	0A8H.7
+EC	BIT	0A8H.6
+CF	BIT	0D8H.7
+CH	DATA	0F9H
+FE	BIT	098H.7
+IEN0	DATA	0A8H
+EADC	BIT	0E8H.1
+IEN1	DATA	0E8H
+CL	DATA	0E9H
+ADCF	DATA	0F6H
+CCAP0H	DATA	0FAH
+P1_0	BIT	090H.0
+CCAP1H	DATA	0FBH
+IPH0	DATA	0B7H
+ADDH	DATA	0F5H
+P2_0	BIT	0A0H.0
+P1_1	BIT	090H.1
+CCAP2H	DATA	0FCH
+IPH1	DATA	0F7H
+P3_0	BIT	0B0H.0
+P2_1	BIT	0A0H.1
+P1_2	BIT	090H.2
+CCAP3H	DATA	0FDH
+P3_1	BIT	0B0H.1
+P2_2	BIT	0A0H.2
+P1_3	BIT	090H.3
+CCAP4H	DATA	0FEH
+CCAP0L	DATA	0EAH
+CR	BIT	0D8H.6
+P3_2	BIT	0B0H.2
+P2_3	BIT	0A0H.3
+P1_4	BIT	090H.4
+CCAP1L	DATA	0EBH
+CCAPM0	DATA	0DAH
+IPL0	DATA	0B8H
+ADDL	DATA	0F4H
+EXF2	BIT	0C8H.6
+RD	BIT	0B0H.7
+P3_3	BIT	0B0H.3
+P2_4	BIT	0A0H.4
+P1_5	BIT	090H.5
+CCAP2L	DATA	0ECH
+CCAPM1	DATA	0DBH
+IPL1	DATA	0F8H
+P3_4	BIT	0B0H.4
+P2_5	BIT	0A0H.5
+P1_6	BIT	090H.6
+WRn	BIT	090H.5
+CCAP3L	DATA	0EDH
+CCAPM2	DATA	0DCH
+ES	BIT	0A8H.4
+P3_5	BIT	0B0H.5
+P2_6	BIT	0A0H.6
+P1_7	BIT	090H.7
+CCAP4L	DATA	0EEH
+CCAPM3	DATA	0DDH
+UD	BIT	0D0H.1
+P3_6	BIT	0B0H.6
+P2_7	BIT	0A0H.7
+CCAPM4	DATA	0DEH
+P3_7	BIT	0B0H.7
+RI	BIT	098H.0
+CY	BIT	0D0H.7
+INT0	BIT	0B0H.2
+TI	BIT	098H.1
+INT1	BIT	0B0H.3
+tstbit	BIT	0C0H.0
+RCAP2H	DATA	0CBH
+SP	DATA	081H
+CMOD	DATA	0D9H
+CCON	DATA	0D8H
+OV	BIT	0D0H.2
+RCAP2L	DATA	0CAH
+FCON	DATA	0D1H
+C_T2	BIT	0C8H.1
+WR	BIT	0B0H.6
+RCLK	BIT	0C8H.5
+TCLK	BIT	0C8H.4
+SBUF	DATA	099H
+PCON	DATA	087H
+SCON	DATA	098H
+CS0n	BIT	090H.3
+TMOD	DATA	089H
+TCON	DATA	088H
+CS1n	BIT	090H.4
+IE0	BIT	088H.1
+IE1	BIT	088H.3
+AUXR	DATA	08EH
+B	DATA	0F0H
+CP_RL2	BIT	0C8H.0
+ACC	DATA	0E0H
+ET0	BIT	0A8H.1
+ET1	BIT	0A8H.3
+TF0	BIT	088H.5
+ET2	BIT	0A8H.5
+TF1	BIT	088H.7
+RB8	BIT	098H.2
+TH0	DATA	08CH
+TF2	BIT	0C8H.7
+EX0	BIT	0A8H.0
+TH1	DATA	08DH
+IT0	BIT	088H.0
+EX1	BIT	0A8H.2
+TB8	BIT	098H.3
+TH2	DATA	0CDH
+IT1	BIT	088H.2
+P	BIT	0D0H.0
+SM0	BIT	098H.7
+TL0	DATA	08AH
+SM1	BIT	098H.6
+TL1	DATA	08BH
+SM2	BIT	098H.5
+TL2	DATA	0CCH
+RS0	BIT	0D0H.3
+TR0	BIT	088H.4
+RS1	BIT	0D0H.4
+TR1	BIT	088H.6
+TR2	BIT	0C8H.2
+WDTPRG	DATA	0A7H
+DPH	DATA	083H
+ADCLK	DATA	0F2H
+DPL	DATA	082H
+EXEN2	BIT	0C8H.3
+REN	BIT	098H.4
+ADCON	DATA	0F3H
+T2MOD	DATA	0C9H
+T2CON	DATA	0C8H
+WDTRST	DATA	0A6H
+EECON	DATA	0D2H
+SADEN	DATA	0B9H
+RXD	BIT	0B0H.0
+SADDR	DATA	0A9H
+CKCON	DATA	08FH
+A0	BIT	090H.0
+TXD	BIT	0B0H.1
+A1	BIT	090H.1
+A2	BIT	090H.2
+AUXR1	DATA	0A2H
+RESETn	BIT	090H.7
+F0	BIT	0D0H.5
+PSW	DATA	0D0H
+CCF0	BIT	0D8H.0
+CCF1	BIT	0D8H.1
+?PR?main?IDE_51_MAIN_REV1                SEGMENT CODE 
+?PR?wait_ATA_ready?IDE_51_MAIN_REV1      SEGMENT CODE 
+?PR?rep_all_reg?IDE_51_MAIN_REV1         SEGMENT CODE 
+?PR?ReportDiskStatus?IDE_51_MAIN_REV1    SEGMENT CODE 
+?DT?ReportDiskStatus?IDE_51_MAIN_REV1    SEGMENT DATA OVERLAYABLE
+?PR?ReportErrorStatus?IDE_51_MAIN_REV1   SEGMENT CODE 
+?DT?ReportErrorStatus?IDE_51_MAIN_REV1   SEGMENT DATA OVERLAYABLE
+?PR?_READ_ATA_REG?IDE_51_MAIN_REV1       SEGMENT CODE 
+?DT?_READ_ATA_REG?IDE_51_MAIN_REV1       SEGMENT DATA OVERLAYABLE
+?PR?_WRITE_ATA_REG?IDE_51_MAIN_REV1      SEGMENT CODE 
+?DT?_WRITE_ATA_REG?IDE_51_MAIN_REV1      SEGMENT DATA OVERLAYABLE
+?PR?_delay?IDE_51_MAIN_REV1              SEGMENT CODE 
+?PR?Init_serial?IDE_51_MAIN_REV1         SEGMENT CODE 
+?PR?_putchar?IDE_51_MAIN_REV1            SEGMENT CODE 
+?PR?RxdReceive?IDE_51_MAIN_REV1          SEGMENT CODE 
+?CO?IDE_51_MAIN_REV1 SEGMENT CODE 
+?DT?IDE_51_MAIN_REV1 SEGMENT DATA 
+	EXTRN	CODE (_printf)
+	EXTRN	DATA (?_printf?BYTE)
+	EXTRN	CODE (?C_STARTUP)
+	PUBLIC	Parity
+	PUBLIC	DataSpeed
+	PUBLIC	StopBits
+	PUBLIC	Bytes_write
+	PUBLIC	SerialSet
+	PUBLIC	DataBits
+	PUBLIC	Aux_Data
+	PUBLIC	RxdReceive
+	PUBLIC	_putchar
+	PUBLIC	Init_serial
+	PUBLIC	_delay
+	PUBLIC	_WRITE_ATA_REG
+	PUBLIC	_READ_ATA_REG
+	PUBLIC	ReportErrorStatus
+	PUBLIC	ReportDiskStatus
+	PUBLIC	rep_all_reg
+	PUBLIC	wait_ATA_ready
+	PUBLIC	main
+
+	RSEG  ?DT?ReportErrorStatus?IDE_51_MAIN_REV1
+?ReportErrorStatus?BYTE:
+diskerrorcode?441:   DS   1
+
+	RSEG  ?DT?ReportDiskStatus?IDE_51_MAIN_REV1
+?ReportDiskStatus?BYTE:
+ diskstatus?340:   DS   1
+
+	RSEG  ?DT?_WRITE_ATA_REG?IDE_51_MAIN_REV1
+?_WRITE_ATA_REG?BYTE:
+       breg?644:   DS   1
+
+	RSEG  ?DT?_READ_ATA_REG?IDE_51_MAIN_REV1
+?_READ_ATA_REG?BYTE:
+ return_val?543:   DS   1
+
+	RSEG  ?DT?IDE_51_MAIN_REV1
+       Aux_Data:   DS   16
+       DataBits:   DS   1
+      SerialSet:   DS   1
+    Bytes_write:   DS   2
+       StopBits:   DS   1
+      DataSpeed:   DS   2
+         Parity:   DS   1
+
+	RSEG  ?CO?IDE_51_MAIN_REV1
+?SC_0:
+	DB  '=' ,'=' ,'=' ,'=' ,'=' ,'=' ,'=' ,'=' ,'=' ,'=' 
+	DB  '=' ,'=' ,'=' ,'=' ,'=' ,'=' ,'=' ,'=' ,'=' ,'=' 
+	DB  '=' ,'=' ,'=' ,00AH,00DH,000H
+
+?SC_26:
+	DB  '8' ,'0' ,'5' ,'1' ,'-' ,'I' ,'D' ,'E' ,' ' ,'s' 
+	DB  'y' ,'s' ,'t' ,'e' ,'m' ,'.' ,'.' ,'.' ,00AH,00DH
+	DB  000H
+
+?SC_47:
+	DB  'V' ,'e' ,'r' ,'s' ,'i' ,'o' ,'n' ,' ' ,'1' ,'.' 
+	DB  '0' ,' ' ,00AH,00DH,000H
+
+?SC_62:
+	DB  '1' ,'4' ,' ' ,'A' ,'p' ,'r' ,'i' ,'l' ,' ' ,'2' 
+	DB  '0' ,'0' ,'6' ,' ' ,'@' ,'1' ,'9' ,':' ,'3' ,'0' 
+	DB  00AH,00DH,000H
+
+?SC_85:
+	DB  'k' ,'t' ,'k' ,'o' ,'s' ,'o' ,'n' ,'@' ,'k' ,'m' 
+	DB  'i' ,'t' ,'l' ,'.' ,'a' ,'c' ,'.' ,'t' ,'h' ,00AH
+	DB  00DH,000H
+
+?SC_107:
+	DB  'a' ,'l' ,'l' ,' ' ,'r' ,'i' ,'g' ,'h' ,'t' ,' ' 
+	DB  'r' ,'e' ,'s' ,'e' ,'r' ,'v' ,'e' ,'d' ,'.' ,00AH
+	DB  00DH,000H
+
+?SC_129:
+	DB  00AH,00DH,000H
+
+?SC_132:
+	DB  'H' ,'a' ,'r' ,'d' ,' ' ,'d' ,'i' ,'s' ,'k' ,' ' 
+	DB  'd' ,'i' ,'a' ,'g' ,'.' ,'.' ,'.' ,00AH,00DH,000H
+
+?SC_152:
+	DB  'H' ,'a' ,'r' ,'d' ,'d' ,'i' ,'s' ,'k' ,' ' ,'r' 
+	DB  'e' ,'a' ,'d' ,'y' ,'.' ,'.' ,'.' ,00DH,00AH,000H
+
+?SC_172:
+	DB  'W' ,'R' ,'I' ,'T' ,'E' ,'_' ,'A' ,'T' ,'A' ,'_' 
+	DB  'R' ,'E' ,'G' ,'(' ,'C' ,'O' ,'M' ,'M' ,'A' ,'N' 
+	DB  'D' ,'_' ,'R' ,'E' ,'G' ,',' ,' ' ,'0' ,'x' ,'E' 
+	DB  '1' ,')' ,';' ,'.' ,'.' ,'.' ,00DH,00AH,000H
+
+?SC_211:
+	DB  'W' ,'a' ,'i' ,'t' ,' ' ,'f' ,'o' ,'r' ,' ' ,'a' 
+	DB  't' ,'a' ,' ' ,'r' ,'e' ,'a' ,'d' ,'y' ,'.' ,'.' 
+	DB  '.' ,00DH,00AH,000H
+
+?SC_235:
+	DB  ' ' ,'S' ,'E' ,'C' ,'T' ,'O' ,'R' ,'_' ,'C' ,'O' 
+	DB  'U' ,'N' ,'T' ,' ' ,'R' ,'e' ,'g' ,'i' ,'s' ,'t' 
+	DB  'e' ,'r' ,' ' ,'=' ,' ' ,'%' ,'b' ,'x' ,00DH,00AH
+	DB  000H
+
+?SC_266:
+	DB  ' ' ,'S' ,'E' ,'C' ,'T' ,'O' ,'R' ,'_' ,'N' ,'U' 
+	DB  'M' ,'B' ,'E' ,'R' ,' ' ,'R' ,'e' ,'g' ,'i' ,'s' 
+	DB  't' ,'e' ,'r' ,' ' ,'=' ,' ' ,'%' ,'b' ,'x' ,00DH
+	DB  00AH,000H
+
+?SC_298:
+	DB  ' ' ,'C' ,'Y' ,'L' ,'I' ,'N' ,'D' ,'E' ,'R' ,'_' 
+	DB  'L' ,'O' ,'W' ,' ' ,'R' ,'e' ,'g' ,'i' ,'s' ,'t' 
+	DB  'e' ,'r' ,' ' ,'=' ,' ' ,'%' ,'b' ,'x' ,00DH,00AH
+	DB  000H
+
+?SC_329:
+	DB  ' ' ,'C' ,'Y' ,'L' ,'I' ,'N' ,'D' ,'E' ,'R' ,'_' 
+	DB  'H' ,'I' ,' ' ,'R' ,'e' ,'g' ,'i' ,'s' ,'t' ,'e' 
+	DB  'r' ,' ' ,'=' ,' ' ,'%' ,'b' ,'x' ,00DH,00AH,000H
+
+?SC_359:
+	DB  ' ' ,'D' ,'R' ,'I' ,'V' ,'E' ,'_' ,'H' ,'E' ,'A' 
+	DB  'D' ,' ' ,'R' ,'e' ,'g' ,'i' ,'s' ,'t' ,'e' ,'r' 
+	DB  ' ' ,'=' ,' ' ,'%' ,'b' ,'x' ,00DH,00AH,000H
+
+?SC_388:
+	DB  '-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' 
+	DB  '-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' 
+	DB  '-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' 
+	DB  '-' ,'-' ,00AH,00DH,000H
+
+?SC_423:
+	DB  's' ,'t' ,'a' ,'t' ,'u' ,'s' ,' ' ,'r' ,'e' ,'g' 
+	DB  'i' ,'s' ,'t' ,'e' ,'r' ,' ' ,'v' ,'a' ,'l' ,'u' 
+	DB  'e' ,' ' ,' ' ,'=' ,' ' ,'%' ,'b' ,'X' ,00AH,00DH
+	DB  000H
+
+?SC_454:
+	DB  'B' ,'U' ,'S' ,'Y' ,' ' ,'D' ,'R' ,'D' ,'Y' ,' ' 
+	DB  ' ' ,'D' ,'W' ,'F' ,' ' ,' ' ,'D' ,'S' ,'C' ,' ' 
+	DB  ' ' ,'D' ,'R' ,'Q' ,' ' ,' ' ,'C' ,'O' ,'R' ,'R' 
+	DB  ' ' ,'I' ,'N' ,'D' ,'E' ,'X' ,' ' ,'E' ,'R' ,'R' 
+	DB  'O' ,'R' ,' ' ,00AH,00DH,000H
+
+?SC_500:
+	DB  ' ' ,' ' ,'%' ,'b' ,'X' ,' ' ,' ' ,' ' ,' ' ,'%' 
+	DB  'b' ,'X' ,' ' ,' ' ,' ' ,' ' ,000H
+
+?SC_517:
+	DB  '%' ,'b' ,'X' ,' ' ,' ' ,' ' ,' ' ,'%' ,'b' ,'X' 
+	DB  ' ' ,' ' ,' ' ,' ' ,000H
+
+?SC_532:
+	DB  '%' ,'b' ,'X' ,' ' ,' ' ,' ' ,' ' ,' ' ,'%' ,'b' 
+	DB  'X' ,' ' ,' ' ,' ' ,' ' ,000H
+
+?SC_548:
+	DB  '%' ,'b' ,'X' ,' ' ,' ' ,' ' ,' ' ,' ' ,'%' ,'b' 
+	DB  'X' ,00AH,00DH,000H
+
+?SC_562:
+	DB  '-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' 
+	DB  '-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' 
+	DB  '-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' ,'-' 
+	DB  '-' ,'-' ,'-' ,'-' ,00AH,00DH,000H
+
+?SC_599:
+	DB  'E' ,'r' ,'r' ,'o' ,'r' ,' ' ,'r' ,'e' ,'g' ,'i' 
+	DB  's' ,'t' ,'e' ,'r' ,' ' ,'v' ,'a' ,'l' ,'u' ,'e' 
+	DB  ' ' ,' ' ,'=' ,' ' ,'%' ,'b' ,'X' ,00AH,00DH,000H
+
+?SC_629:
+	DB  'B' ,'B' ,'K' ,' ' ,' ' ,'U' ,'N' ,'C' ,' ' ,' ' 
+	DB  ' ' ,'-' ,'-' ,'-' ,'-' ,' ' ,'I' ,'N' ,'D' ,'F' 
+	DB  ' ' ,'-' ,'-' ,'-' ,' ' ,' ' ,'A' ,'B' ,'R' ,'T' 
+	DB  ' ' ,'T' ,'K' ,'0' ,'N' ,'F' ,' ' ,'A' ,'M' ,'N' 
+	DB  'F' ,00AH,00DH,000H
+
+; #include <REG51AC2.h>
+; #include <stdio.h>
+; 
+; #define N 'N'
+; #define E 'E'
+; #define O 'O'
+; #define n 'N'
+; #define e 'E'
+; #define o 'O'
+; 
+; #define ATA_ST_ERR			0x01
+; #define ATA_ST_INDEX		0x02 >> 1 
+; #define ATA_ST_CORR			0x04 >> 2
+; #define ATA_ST_DRQ			0x08 >> 3
+; #define ATA_ST_DSC			0x10 >> 4
+; #define ATA_ST_DWF			0x20 >> 5
+; #define ATA_ST_RDY			0x40 >> 6
+; #define ATA_ST_BUSY			0x80 >> 7
+; 
+; #define ATA_ERR_AMNF		0x01
+; #define ATA_ERR_TK0NF		0x02 >> 1
+; #define ATA_ERR_ABRT		0x04 >> 2
+; #define ATA_ERR_MCR			0x08 >> 3
+; #define ATA_ERR_IDNF		0x10 >> 4
+; #define ATA_ERR_MC			0x20 >> 5
+; #define ATA_ERR_UNC			0x40 >> 6
+; #define ATA_ERR_BBK			0x80 >> 7
+; 
+; #define DATA_PORT			0xF0
+; #define ERROR_REG			0xF1
+; #define SECTOR_COUNT		0xF2
+; #define SECTOR_NUMBER		0xF3
+; #define CYLINDER_LOW		0xF4
+; #define CYLINDER_HI			0xF5
+; #define DRIVE_HEAD			0xF6
+; #define STATUS_REG			0xF7
+; #define COMMAND_REG			0xF7
+; 
+; unsigned int  DataSpeed;
+; unsigned char DataBits;
+; unsigned char Parity;
+; unsigned char StopBits;
+; unsigned char SerialSet;
+; 
+; 
+; void Init_serial();
+; unsigned int Bytes_write; // len data_ethernet
+; unsigned char Aux_Data[16];           //' TCP AUX DATA = INTERGER < PACKET - 55 BYTE AND CHECKRAM
+; 
+; sbit RESETn = P1^7;
+; sbit RDn    = P1^6;
+; sbit WRn    = P1^5;
+; sbit CS1n   = P1^4;
+; sbit CS0n   = P1^3;
+; sbit A2     = P1^2;
+; sbit A1     = P1^1;
+; sbit A0     = P1^0;
+; sbit tstbit = P4^0;
+; 
+; void delay(unsigned int);
+; unsigned char READ_ATA_REG (unsigned char REG );
+; void WRITE_ATA_REG(unsigned char breg, unsigned char value);
+; void ReportDiskStatus();
+; void rep_all_reg ();
+; void ReportErrorStatus();
+; void wait_ATA_ready();
+; 
+; 
+; main()
+
+	RSEG  ?PR?main?IDE_51_MAIN_REV1
+main:
+	USING	0
+			; SOURCE LINE # 69
+; {
+			; SOURCE LINE # 70
+; 
+; 	
+;    	AUXR = 0x0C;             //' T89C51AC2 CONFIG SELECT IRAM = 1024 BYTE.
+			; SOURCE LINE # 73
+	MOV  	AUXR,#0CH
+;    	Init_serial(); //' SERIAL SETTING.
+			; SOURCE LINE # 74
+	LCALL	Init_serial
+; 	EA = 1;                  //' ENABLE INTERRUPT.
+			; SOURCE LINE # 75
+	SETB 	EA
+;     ES = 1;                  //' ENABLE SERIAL INTERRUPT.
+			; SOURCE LINE # 76
+	SETB 	ES
+; 	
+; 	P1 = 0xf8;
+			; SOURCE LINE # 78
+	MOV  	P1,#0F8H
+; 	P2 = 0;
+			; SOURCE LINE # 79
+	CLR  	A
+	MOV  	P2,A
+; 
+; 	Bytes_write = 0;
+			; SOURCE LINE # 81
+	MOV  	Bytes_write,A
+	MOV  	Bytes_write+01H,A
+; 	printf("=======================\n\r");
+			; SOURCE LINE # 82
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_0)
+	MOV  	R1,#LOW (?SC_0)
+	LCALL	_printf
+; 	printf("8051-IDE system...\n\r");
+			; SOURCE LINE # 83
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_26)
+	MOV  	R1,#LOW (?SC_26)
+	LCALL	_printf
+; 	printf("Version 1.0 \n\r");
+			; SOURCE LINE # 84
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_47)
+	MOV  	R1,#LOW (?SC_47)
+	LCALL	_printf
+; 	printf("14 April 2006 @19:30\n\r");
+			; SOURCE LINE # 85
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_62)
+	MOV  	R1,#LOW (?SC_62)
+	LCALL	_printf
+; 	printf("ktkoson@kmitl.ac.th\n\r");
+			; SOURCE LINE # 86
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_85)
+	MOV  	R1,#LOW (?SC_85)
+	LCALL	_printf
+; 	printf("all right reserved.\n\r");
+			; SOURCE LINE # 87
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_107)
+	MOV  	R1,#LOW (?SC_107)
+	LCALL	_printf
+; 	printf("=======================\n\r");
+			; SOURCE LINE # 88
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_0)
+	MOV  	R1,#LOW (?SC_0)
+	LCALL	_printf
+; 	printf("\n\r");
+			; SOURCE LINE # 89
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_129)
+	MOV  	R1,#LOW (?SC_129)
+	LCALL	_printf
+; 
+; 
+; 	printf("Hard disk diag...\n\r");
+			; SOURCE LINE # 92
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_132)
+	MOV  	R1,#LOW (?SC_132)
+	LCALL	_printf
+; 	printf("\n\r");
+			; SOURCE LINE # 93
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_129)
+	MOV  	R1,#LOW (?SC_129)
+	LCALL	_printf
+; 
+; 	RESETn = 0;
+			; SOURCE LINE # 95
+	CLR  	RESETn
+; 	delay(100);
+			; SOURCE LINE # 96
+	MOV  	R7,#064H
+	MOV  	R6,#00H
+	LCALL	_delay
+; 	RESETn = 1;
+			; SOURCE LINE # 97
+	SETB 	RESETn
+; 	delay(100);
+			; SOURCE LINE # 98
+	MOV  	R7,#064H
+	MOV  	R6,#00H
+	LCALL	_delay
+; 
+; 		
+; 	wait_ATA_ready(); 	
+			; SOURCE LINE # 101
+	LCALL	wait_ATA_ready
+; 	printf("Harddisk ready...\r\n");
+			; SOURCE LINE # 102
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_152)
+	MOV  	R1,#LOW (?SC_152)
+	LCALL	_printf
+; 	WRITE_ATA_REG(0xf6,0xe0);
+			; SOURCE LINE # 103
+	MOV  	R5,#0E0H
+	MOV  	R7,#0F6H
+	LCALL	_WRITE_ATA_REG
+; 	wait_ATA_ready(); 	
+			; SOURCE LINE # 104
+	LCALL	wait_ATA_ready
+; 
+; 
+; 	rep_all_reg ();
+			; SOURCE LINE # 107
+	LCALL	rep_all_reg
+; 
+;    printf("WRITE_ATA_REG(COMMAND_REG, 0xE1);...\r\n");
+			; SOURCE LINE # 109
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_172)
+	MOV  	R1,#LOW (?SC_172)
+	LCALL	_printf
+; 
+;    WRITE_ATA_REG(COMMAND_REG, 0xE1);
+			; SOURCE LINE # 111
+	MOV  	R5,#0E1H
+	MOV  	R7,#0F7H
+	LCALL	_WRITE_ATA_REG
+;    wait_ATA_ready(); 	
+			; SOURCE LINE # 112
+	LCALL	wait_ATA_ready
+; 
+;    WRITE_ATA_REG(COMMAND_REG, 0xEC);
+			; SOURCE LINE # 114
+	MOV  	R5,#0ECH
+	MOV  	R7,#0F7H
+	LCALL	_WRITE_ATA_REG
+;    wait_ATA_ready(); 	
+			; SOURCE LINE # 115
+	LCALL	wait_ATA_ready
+?C0001:
+;   	while(!(READ_ATA_REG(STATUS_REG) & 0x08));	  // wait for ready
+			; SOURCE LINE # 116
+	MOV  	R7,#0F7H
+	LCALL	_READ_ATA_REG
+	MOV  	A,R7
+	JNB  	ACC.3,?C0001
+?C0002:
+; 
+;    
+;    rep_all_reg ();
+			; SOURCE LINE # 119
+	LCALL	rep_all_reg
+?C0003:
+; 
+; 
+;     while(1){
+			; SOURCE LINE # 122
+; 		tstbit = !tstbit;
+			; SOURCE LINE # 123
+	CPL  	tstbit
+; 		delay(10);
+			; SOURCE LINE # 124
+	MOV  	R7,#0AH
+	MOV  	R6,#00H
+	LCALL	_delay
+; 	}
+			; SOURCE LINE # 125
+	SJMP 	?C0003
+; END OF main
+
+; }
+; 
+; void wait_ATA_ready()
+
+	RSEG  ?PR?wait_ATA_ready?IDE_51_MAIN_REV1
+wait_ATA_ready:
+	USING	0
+			; SOURCE LINE # 128
+; {
+			; SOURCE LINE # 129
+; 	printf("Wait for ata ready...\r\n");
+			; SOURCE LINE # 130
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_211)
+	MOV  	R1,#LOW (?SC_211)
+	LCALL	_printf
+?C0006:
+; 	while( (READ_ATA_REG(STATUS_REG) & 0x80)) ;	  // wait for not busy
+			; SOURCE LINE # 131
+	MOV  	R7,#0F7H
+	LCALL	_READ_ATA_REG
+	MOV  	A,R7
+	JB   	ACC.7,?C0006
+?C0008:
+; 	while(!(READ_ATA_REG(STATUS_REG) & 0x40));	  // wait for ready
+			; SOURCE LINE # 132
+	MOV  	R7,#0F7H
+	LCALL	_READ_ATA_REG
+	MOV  	A,R7
+	JNB  	ACC.6,?C0008
+; 
+; }
+			; SOURCE LINE # 134
+?C0010:
+	RET  	
+; END OF wait_ATA_ready
+
+; 
+; 
+; void rep_all_reg ()
+
+	RSEG  ?PR?rep_all_reg?IDE_51_MAIN_REV1
+rep_all_reg:
+	USING	0
+			; SOURCE LINE # 137
+; {
+			; SOURCE LINE # 138
+; 	ReportDiskStatus();
+			; SOURCE LINE # 139
+	LCALL	ReportDiskStatus
+; 	ReportErrorStatus();
+			; SOURCE LINE # 140
+	LCALL	ReportErrorStatus
+; 	printf(" SECTOR_COUNT Register = %bx\r\n", READ_ATA_REG(SECTOR_COUNT));
+			; SOURCE LINE # 141
+	MOV  	R7,#0F2H
+	LCALL	_READ_ATA_REG
+	MOV  	?_printf?BYTE+03H,R7
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_235)
+	MOV  	R1,#LOW (?SC_235)
+	LCALL	_printf
+; 	printf(" SECTOR_NUMBER Register = %bx\r\n", READ_ATA_REG(SECTOR_NUMBER));
+			; SOURCE LINE # 142
+	MOV  	R7,#0F3H
+	LCALL	_READ_ATA_REG
+	MOV  	?_printf?BYTE+03H,R7
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_266)
+	MOV  	R1,#LOW (?SC_266)
+	LCALL	_printf
+; 	printf(" CYLINDER_LOW Register = %bx\r\n", READ_ATA_REG(CYLINDER_LOW));
+			; SOURCE LINE # 143
+	MOV  	R7,#0F4H
+	LCALL	_READ_ATA_REG
+	MOV  	?_printf?BYTE+03H,R7
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_298)
+	MOV  	R1,#LOW (?SC_298)
+	LCALL	_printf
+; 	printf(" CYLINDER_HI Register = %bx\r\n", READ_ATA_REG(CYLINDER_HI));
+			; SOURCE LINE # 144
+	MOV  	R7,#0F5H
+	LCALL	_READ_ATA_REG
+	MOV  	?_printf?BYTE+03H,R7
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_329)
+	MOV  	R1,#LOW (?SC_329)
+	LCALL	_printf
+; 	printf(" CYLINDER_LOW Register = %bx\r\n", READ_ATA_REG(CYLINDER_LOW));
+			; SOURCE LINE # 145
+	MOV  	R7,#0F4H
+	LCALL	_READ_ATA_REG
+	MOV  	?_printf?BYTE+03H,R7
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_298)
+	MOV  	R1,#LOW (?SC_298)
+	LCALL	_printf
+; 	printf(" CYLINDER_LOW Register = %bx\r\n", READ_ATA_REG(CYLINDER_LOW));
+			; SOURCE LINE # 146
+	MOV  	R7,#0F4H
+	LCALL	_READ_ATA_REG
+	MOV  	?_printf?BYTE+03H,R7
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_298)
+	MOV  	R1,#LOW (?SC_298)
+	LCALL	_printf
+; 	printf(" DRIVE_HEAD Register = %bx\r\n", READ_ATA_REG(DRIVE_HEAD));
+			; SOURCE LINE # 147
+	MOV  	R7,#0F6H
+	LCALL	_READ_ATA_REG
+	MOV  	?_printf?BYTE+03H,R7
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_359)
+	MOV  	R1,#LOW (?SC_359)
+	LJMP 	_printf
+; END OF rep_all_reg
+
+; 
+; 
+; }
+; void ReportDiskStatus()
+
+	RSEG  ?PR?ReportDiskStatus?IDE_51_MAIN_REV1
+ReportDiskStatus:
+	USING	0
+			; SOURCE LINE # 151
+; {
+			; SOURCE LINE # 152
+; 	unsigned char diskstatus;
+; 	diskstatus = READ_ATA_REG(STATUS_REG);
+			; SOURCE LINE # 154
+	MOV  	R7,#0F7H
+	LCALL	_READ_ATA_REG
+	MOV  	diskstatus?340,R7
+; 	printf("--------------------------------\n\r");
+			; SOURCE LINE # 155
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_388)
+	MOV  	R1,#LOW (?SC_388)
+	LCALL	_printf
+; 	printf("status register value  = %bX\n\r",diskstatus);
+			; SOURCE LINE # 156
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_423)
+	MOV  	R1,#LOW (?SC_423)
+	MOV  	?_printf?BYTE+03H,diskstatus?340
+	LCALL	_printf
+; 	printf("BUSY DRDY  DWF  DSC  DRQ  CORR INDEX ERROR \n\r");
+			; SOURCE LINE # 157
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_454)
+	MOV  	R1,#LOW (?SC_454)
+	LCALL	_printf
+; 	printf("  %bX    %bX    ",diskstatus >> 7 &1  ,diskstatus >> 6 &1);
+			; SOURCE LINE # 158
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_500)
+	MOV  	R1,#LOW (?SC_500)
+	MOV  	A,diskstatus?340
+	SWAP 	A
+	RRC  	A
+	RRC  	A
+	RRC  	A
+	ANL  	A,#01H
+	MOV  	?_printf?BYTE+03H,A
+	MOV  	A,diskstatus?340
+	SWAP 	A
+	RRC  	A
+	RRC  	A
+	ANL  	A,#01H
+	MOV  	?_printf?BYTE+04H,A
+	LCALL	_printf
+; 	printf("%bX    %bX    "  ,diskstatus >> 5 &1,diskstatus >> 4 &1);
+			; SOURCE LINE # 159
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_517)
+	MOV  	R1,#LOW (?SC_517)
+	MOV  	A,diskstatus?340
+	SWAP 	A
+	RRC  	A
+	ANL  	A,#01H
+	MOV  	?_printf?BYTE+03H,A
+	MOV  	A,diskstatus?340
+	SWAP 	A
+	ANL  	A,#01H
+	MOV  	?_printf?BYTE+04H,A
+	LCALL	_printf
+; 	printf("%bX     %bX    " ,diskstatus >> 3 &1,diskstatus >> 2 &1);
+			; SOURCE LINE # 160
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_532)
+	MOV  	R1,#LOW (?SC_532)
+	MOV  	A,diskstatus?340
+	RRC  	A
+	RRC  	A
+	RRC  	A
+	ANL  	A,#01H
+	MOV  	?_printf?BYTE+03H,A
+	MOV  	A,diskstatus?340
+	RRC  	A
+	RRC  	A
+	ANL  	A,#01H
+	MOV  	?_printf?BYTE+04H,A
+	LCALL	_printf
+; 	printf("%bX     %bX\n\r" ,diskstatus >> 1 &1,diskstatus &1);
+			; SOURCE LINE # 161
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_548)
+	MOV  	R1,#LOW (?SC_548)
+	MOV  	A,diskstatus?340
+	CLR  	C
+	RRC  	A
+	ANL  	A,#01H
+	MOV  	?_printf?BYTE+03H,A
+	MOV  	A,diskstatus?340
+	ANL  	A,#01H
+	MOV  	?_printf?BYTE+04H,A
+	LCALL	_printf
+; 	delay (100);
+			; SOURCE LINE # 162
+	MOV  	R7,#064H
+	MOV  	R6,#00H
+	LJMP 	_delay
+; END OF ReportDiskStatus
+
+; 
+; }
+; 
+; void ReportErrorStatus()
+
+	RSEG  ?PR?ReportErrorStatus?IDE_51_MAIN_REV1
+ReportErrorStatus:
+	USING	0
+			; SOURCE LINE # 166
+; {
+			; SOURCE LINE # 167
+; 	unsigned char diskerrorcode;
+; 	diskerrorcode = READ_ATA_REG(ERROR_REG);
+			; SOURCE LINE # 169
+	MOV  	R7,#0F1H
+	LCALL	_READ_ATA_REG
+	MOV  	diskerrorcode?441,R7
+; 
+; 	printf("----------------------------------\n\r");
+			; SOURCE LINE # 171
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_562)
+	MOV  	R1,#LOW (?SC_562)
+	LCALL	_printf
+; 	printf("Error register value  = %bX\n\r",diskerrorcode);
+			; SOURCE LINE # 172
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_599)
+	MOV  	R1,#LOW (?SC_599)
+	MOV  	?_printf?BYTE+03H,diskerrorcode?441
+	LCALL	_printf
+; 	printf("BBK  UNC   ---- INDF ---  ABRT TK0NF AMNF\n\r");
+			; SOURCE LINE # 173
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_629)
+	MOV  	R1,#LOW (?SC_629)
+	LCALL	_printf
+; 	printf("  %bX    %bX    ",diskerrorcode >> 7 &1  ,diskerrorcode >> 6 &1);
+			; SOURCE LINE # 174
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_500)
+	MOV  	R1,#LOW (?SC_500)
+	MOV  	A,diskerrorcode?441
+	SWAP 	A
+	RRC  	A
+	RRC  	A
+	RRC  	A
+	ANL  	A,#01H
+	MOV  	?_printf?BYTE+03H,A
+	MOV  	A,diskerrorcode?441
+	SWAP 	A
+	RRC  	A
+	RRC  	A
+	ANL  	A,#01H
+	MOV  	?_printf?BYTE+04H,A
+	LCALL	_printf
+; 	printf("%bX    %bX    "  ,diskerrorcode >> 5 &1   ,diskerrorcode >> 4 &1);
+			; SOURCE LINE # 175
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_517)
+	MOV  	R1,#LOW (?SC_517)
+	MOV  	A,diskerrorcode?441
+	SWAP 	A
+	RRC  	A
+	ANL  	A,#01H
+	MOV  	?_printf?BYTE+03H,A
+	MOV  	A,diskerrorcode?441
+	SWAP 	A
+	ANL  	A,#01H
+	MOV  	?_printf?BYTE+04H,A
+	LCALL	_printf
+; 	printf("%bX     %bX    " ,diskerrorcode >> 3 &1  ,diskerrorcode >> 2 &1);
+			; SOURCE LINE # 176
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_532)
+	MOV  	R1,#LOW (?SC_532)
+	MOV  	A,diskerrorcode?441
+	RRC  	A
+	RRC  	A
+	RRC  	A
+	ANL  	A,#01H
+	MOV  	?_printf?BYTE+03H,A
+	MOV  	A,diskerrorcode?441
+	RRC  	A
+	RRC  	A
+	ANL  	A,#01H
+	MOV  	?_printf?BYTE+04H,A
+	LCALL	_printf
+; 	printf("%bX     %bX\n\r" ,diskerrorcode >> 1 &1 ,diskerrorcode  &1);
+			; SOURCE LINE # 177
+	MOV  	R3,#0FFH
+	MOV  	R2,#HIGH (?SC_548)
+	MOV  	R1,#LOW (?SC_548)
+	MOV  	A,diskerrorcode?441
+	CLR  	C
+	RRC  	A
+	ANL  	A,#01H
+	MOV  	?_printf?BYTE+03H,A
+	MOV  	A,diskerrorcode?441
+	ANL  	A,#01H
+	MOV  	?_printf?BYTE+04H,A
+	LJMP 	_printf
+; END OF ReportErrorStatus
+
+; }
+; 
+; 
+; unsigned char READ_ATA_REG (unsigned char REG )
+
+	RSEG  ?PR?_READ_ATA_REG?IDE_51_MAIN_REV1
+_READ_ATA_REG:
+	USING	0
+			; SOURCE LINE # 181
+;---- Variable 'REG?542' assigned to Register 'R7' ----
+; {
+			; SOURCE LINE # 182
+; 	unsigned char return_val;
+; 	P1 = REG;
+			; SOURCE LINE # 184
+	MOV  	P1,R7
+; 	delay(50);
+			; SOURCE LINE # 185
+	LCALL	L?0027
+; 	RDn = 0;
+			; SOURCE LINE # 186
+	CLR  	RDn
+; 	delay(50);
+			; SOURCE LINE # 187
+	LCALL	L?0027
+; 	return_val = P0;
+			; SOURCE LINE # 188
+	MOV  	return_val?543,P0
+; 	delay(50);
+			; SOURCE LINE # 189
+	LCALL	L?0028
+; 	RDn = 1;
+			; SOURCE LINE # 190
+	SETB 	RDn
+; 	delay(50);
+			; SOURCE LINE # 191
+	LCALL	L?0028
+; 	return return_val;
+			; SOURCE LINE # 192
+	MOV  	R7,return_val?543
+; }		   
+			; SOURCE LINE # 193
+?C0014:
+	RET  	
+; END OF _READ_ATA_REG
+
+; 
+; void WRITE_ATA_REG(unsigned char breg, unsigned char value)
+
+	RSEG  ?PR?_WRITE_ATA_REG?IDE_51_MAIN_REV1
+_WRITE_ATA_REG:
+	USING	0
+			; SOURCE LINE # 195
+	MOV  	breg?644,R7
+;---- Variable 'value?645' assigned to Register 'R5' ----
+; {
+			; SOURCE LINE # 196
+; 	P0 = value;
+			; SOURCE LINE # 197
+	MOV  	P0,R5
+; 	delay(100);
+			; SOURCE LINE # 198
+	MOV  	R7,#064H
+	MOV  	R6,#00H
+	LCALL	_delay
+; 	P1 = breg;
+			; SOURCE LINE # 199
+	MOV  	P1,breg?644
+; 	delay(200);
+			; SOURCE LINE # 200
+	MOV  	R7,#0C8H
+	MOV  	R6,#00H
+	LCALL	_delay
+; 	WRn = 0;
+			; SOURCE LINE # 201
+	CLR  	WRn
+; 	delay(50);
+			; SOURCE LINE # 202
+	LCALL	L?0028
+; 	WRn = 1;
+			; SOURCE LINE # 203
+	SETB 	WRn
+; 	delay(50);
+			; SOURCE LINE # 204
+	MOV  	R7,#032H
+	MOV  	R6,#00H
+	LJMP 	_delay
+; END OF _WRITE_ATA_REG
+
+; 
+; 
+; 
+; }
+; 
+; 
+; void delay(unsigned int dd)
+
+	RSEG  ?PR?_delay?IDE_51_MAIN_REV1
+L?0027:
+	USING	0
+L?0028:
+	MOV  	R7,#032H
+	MOV  	R6,#00H
+_delay:
+	USING	0
+			; SOURCE LINE # 211
+;---- Variable 'dd?746' assigned to Register 'R6/R7' ----
+; {
+			; SOURCE LINE # 212
+?C0016:
+; 	while(dd--) ;
+			; SOURCE LINE # 213
+	MOV  	A,R7
+	DEC  	R7
+	MOV  	R4,AR6
+	JNZ  	?C0025
+	DEC  	R6
+?C0025:
+	ORL  	A,R4
+	JNZ  	?C0016
+; }
+			; SOURCE LINE # 214
+?C0018:
+	RET  	
+; END OF _delay
+
+; 
+; /*"(---------------------------------------------------------------------)"*/
+; /*"(-           DEFINE INTERNAL DATA OF SERIAL COMMUNICATION            -)"*/
+; /*"(---------------------------------------------------------------------)"*/
+; /*"(---------------------------------------------------------------------)"*/
+; /*"(-                      INITIAL FUNCTION SERIAL                      -)"*/
+; /*"(---------------------------------------------------------------------)"*/
+; void Init_serial() 
+
+	RSEG  ?PR?Init_serial?IDE_51_MAIN_REV1
+Init_serial:
+	USING	0
+			; SOURCE LINE # 222
+; {
+			; SOURCE LINE # 223
+;    //' SET TH1 AND PCON AT FEQUENCY. = 18.432 MHz
+;    PCON |= 0x80; 
+			; SOURCE LINE # 225
+	ORL  	PCON,#080H
+;    TH1 = 246;
+			; SOURCE LINE # 226
+	MOV  	TH1,#0F6H
+;    SCON = 0x50; 
+			; SOURCE LINE # 227
+	MOV  	SCON,#050H
+;    TMOD = 0x20; 
+			; SOURCE LINE # 228
+	MOV  	TMOD,#020H
+;    TR1= 1;     //' TIMER 1 RUN.
+			; SOURCE LINE # 229
+	SETB 	TR1
+;    TI   = 0;   //' SET TI SEND FIRST CHAR OF UART.
+			; SOURCE LINE # 230
+	CLR  	TI
+; }
+			; SOURCE LINE # 231
+	RET  	
+; END OF Init_serial
+
+; 
+; /*"(---------------------------------------------------------------------)"*/
+; /*"(-                      APPLICATIONS SEND DATA                       -)"*/
+; /*"(---------------------------------------------------------------------)"*/
+; char putchar(unsigned char c) 
+
+	RSEG  ?PR?_putchar?IDE_51_MAIN_REV1
+_putchar:
+	USING	0
+			; SOURCE LINE # 236
+;---- Variable 'c?947' assigned to Register 'R7' ----
+; {
+			; SOURCE LINE # 237
+; 	SBUF = c; 
+			; SOURCE LINE # 238
+	MOV  	SBUF,R7
+?C0020:
+; 	while(!TI);
+			; SOURCE LINE # 239
+	JNB  	TI,?C0020
+?C0021:
+; 	TI = 0;      //' CLEAR BIT FLAG TI_0
+			; SOURCE LINE # 240
+	CLR  	TI
+; 	return (c);  //' MOV DATA TO SERIAL 
+			; SOURCE LINE # 241
+; }
+			; SOURCE LINE # 242
+?C0022:
+	RET  	
+; END OF _putchar
+
+CSEG	AT	00023H
+	LJMP	RxdReceive
+
+; 
+; /*"(---------------------------------------------------------------------)"*/
+; /*"(-                    APPLICATIONS RECEIVE DATA                      -)"*/
+; /*"(---------------------------------------------------------------------)"*/
+; void RxdReceive () interrupt 4 
+
+	RSEG  ?PR?RxdReceive?IDE_51_MAIN_REV1
+	USING	0
+RxdReceive:
+	PUSH 	ACC
+	PUSH 	PSW
+	MOV  	PSW,#00H
+	PUSH 	AR0
+	PUSH 	AR7
+	USING	0
+			; SOURCE LINE # 247
+; {
+; 	unsigned char c;
+; 	if (RI == 1) 
+			; SOURCE LINE # 250
+	JNB  	RI,?C0024
+; 	{ 
+			; SOURCE LINE # 251
+; 		c = SBUF;
+			; SOURCE LINE # 252
+;---- Variable 'c?1048' assigned to Register 'R7' ----
+	MOV  	R7,SBUF
+; 		Aux_Data[Bytes_write++] = c; //   
+			; SOURCE LINE # 253
+	INC  	Bytes_write+01H
+	MOV  	A,Bytes_write+01H
+	JNZ  	?C0026
+	INC  	Bytes_write
+?C0026:
+	DEC  	A
+	ADD  	A,#LOW (Aux_Data)
+	MOV  	R0,A
+	MOV  	@R0,AR7
+; 		Aux_Data[Bytes_write+1] = '\0'; //   
+			; SOURCE LINE # 254
+	MOV  	A,#LOW (Aux_Data+01H)
+	ADD  	A,Bytes_write+01H
+	MOV  	R0,A
+	MOV  	@R0,#00H
+; 		RI = 0;
+			; SOURCE LINE # 255
+	CLR  	RI
+; 	}
+			; SOURCE LINE # 256
+; 	return;
+; }
+			; SOURCE LINE # 258
+?C0024:
+	POP  	AR7
+	POP  	AR0
+	POP  	PSW
+	POP  	ACC
+	RETI 	
+; END OF RxdReceive
+
+	END
